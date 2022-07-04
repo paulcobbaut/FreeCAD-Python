@@ -16,8 +16,8 @@ document = FreeCAD.activeDocument()
 document_name = "Scripted"
 
 # number of pieces in grid (max 25!)
-rows = 4
-cols = 10
+rows = 2
+cols = 2
 
 # Dimensions for squared puzzle pieces in mm
 """ top view showing width and length (x and y in FreeCAD)
@@ -38,7 +38,8 @@ cols = 10
 piece_length = 200               # X-coordinate in FreeCAD
 piece_width = piece_length       # Y-coordinate in FreeCAD
 piece_height = 4                 # Z-coordinate in FreeCAD
-piece_separation = piece_length / 5
+#piece_separation = piece_length / 5
+piece_separation = 0
 
 
 # Names and tuples for the tenons and mortises
@@ -214,7 +215,7 @@ for i in range(rows):
         App.ActiveDocument.recompute()
         obj.Shape=App.ActiveDocument.piece_template.Shape
         App.ActiveDocument.ActiveObject.Label = current_label
-        App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset * j, offset * i, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+        App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset * j, - offset * i - piece_length, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
 
 
 setview()
