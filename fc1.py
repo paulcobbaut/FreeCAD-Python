@@ -6,7 +6,10 @@ First attempt at FreeCAD scripting
 
 import FreeCAD
 from FreeCAD import Base, Vector
+import Arch
+import Draft
 import Part
+import importSVG
 import BOPTools
 import BOPTools.JoinFeatures
 
@@ -216,6 +219,28 @@ for i in range(rows):
         obj.Shape=App.ActiveDocument.piece_template.Shape
         App.ActiveDocument.ActiveObject.Label = current_label
         App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset * j, - offset * i - piece_length, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+
+
+# import svg file
+# -- SVG created with Maperitive to correct size
+# -- then edited with Inkscape to remove redundant layers
+# -- then edited with vi to remove <g> and <text> and the rect
+importSVG.insert(u"/home/paul/drawing.svg","Scripted")
+App.ActiveDocument.recompute()
+
+# convert all path to pipe
+for obj in FreeCAD.ActiveDocument.Objects:
+    if obj.Name.find("path")!=-1:
+        obj.Placement = FreeCAD.Placement(Vector(-10.00,0.00,5.00),FreeCAD.Rotation(Vector(0.00,0.00,1.00),0.00))
+        App.ActiveDocument.recompute()
+        Arch.makePipe(obj)
+
+
+#fulllist = []
+#for obj in FreeCAD.ActiveDocument.Objects:
+#    if obj.ViewObject.isVisible():
+#        fulllist = fulllist.append(obj)
+#print(fulllist)
 
 
 setview()
