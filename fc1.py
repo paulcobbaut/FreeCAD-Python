@@ -15,6 +15,9 @@ import BOPTools.JoinFeatures
 document = FreeCAD.activeDocument()
 document_name = "Scripted"
 
+# number of pieces in grid
+rows = 6
+cols = 4
 
 # Dimensions for squared puzzle pieces in mm
 """ top view showing width and length (x and y in FreeCAD)
@@ -186,32 +189,28 @@ for obj in j.ViewObject.Proxy.claimChildren():
 j.ViewObject.hide()
 
 
-# create four simple copies (to serve as the four pieces to use further)
+# loop creating copies in grid
+"""
+naming of each piece resembles paper maps
+example four by four grid
+
+ DA DB DC DD
+ CA CB CC CD
+ BA BB BC BD
+ AA AB AC AD
+"""
+
+abc = "abcdefghijklmnopqrstuvwxyz"
 offset = piece_length + piece_separation
 
-obj = App.ActiveDocument.addObject('Part::Feature','piece_template')
-App.ActiveDocument.recompute()
-obj.Shape=App.ActiveDocument.piece_template.Shape
-App.ActiveDocument.ActiveObject.Label="piece_AA"
-App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-
-obj = App.ActiveDocument.addObject('Part::Feature','piece_template')
-App.ActiveDocument.recompute()
-obj.Shape=App.ActiveDocument.piece_template.Shape
-App.ActiveDocument.ActiveObject.Label="piece_AB"
-App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset, 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-
-obj = App.ActiveDocument.addObject('Part::Feature','piece_template')
-App.ActiveDocument.recompute()
-obj.Shape=App.ActiveDocument.piece_template.Shape
-App.ActiveDocument.ActiveObject.Label="piece_BA"
-App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(0, offset, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-
-obj = App.ActiveDocument.addObject('Part::Feature','piece_template')
-App.ActiveDocument.recompute()
-obj.Shape=App.ActiveDocument.piece_template.Shape
-App.ActiveDocument.ActiveObject.Label="piece_BB"
-App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset, offset, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+for i in range(rows):
+    for j in range(cols):
+        current_label = "piece_" + abc[i] + abc[j]
+        obj = App.ActiveDocument.addObject('Part::Feature','piece_template')
+        App.ActiveDocument.recompute()
+        obj.Shape=App.ActiveDocument.piece_template.Shape
+        App.ActiveDocument.ActiveObject.Label = current_label
+        App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset * j, offset * i, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
 
 
 setview()
