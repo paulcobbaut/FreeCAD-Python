@@ -6,9 +6,12 @@ First attempt at FreeCAD scripting
 
 import FreeCAD
 from FreeCAD import Base, Vector
-import Part
+import Arch
 import BOPTools
 import BOPTools.JoinFeatures
+import Draft
+import importSVG
+import Part
 
 
 # FreeCAD document
@@ -212,6 +215,28 @@ App.ActiveDocument.recompute()
 obj.Shape=App.ActiveDocument.piece_template.Shape
 App.ActiveDocument.ActiveObject.Label="piece_BB"
 App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset, offset, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+
+
+# import svg file
+importSVG.insert(u"/home/paul/3d blinden/svg onderzoek/output_ink.svg","Scripted")
+
+# get all names of imported svg elements
+#for obj in document.Objects:
+#    print "Object: ", obj, " Type: ", obj.Type
+
+#fulllist = []
+#for obj in FreeCAD.ActiveDocument.Objects:
+#    if obj.ViewObject.isVisible():
+#        fulllist = fulllist.append(obj)
+#print(fulllist)
+
+
+print('start')
+for obj in FreeCAD.ActiveDocument.Objects:
+    if hasattr(obj,"Shape"):
+        print(obj.Name)
+
+#sketch = Draft.make_sketch(App.ActiveDocument.path401, autoconstraints=False, addTo=None, delete=False, name="Sketchmap", radiusPrecision=-1, tol=1e-3)
 
 
 setview()
