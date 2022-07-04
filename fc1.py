@@ -234,14 +234,26 @@ for obj in FreeCAD.ActiveDocument.Objects:
         obj.Placement = FreeCAD.Placement(Vector(-10.00,0.00,5.00),FreeCAD.Rotation(Vector(0.00,0.00,1.00),0.00))
         App.ActiveDocument.recompute()
         Arch.makePipe(obj)
+#        print(obj.Label)
 
 
-#fulllist = []
-#for obj in FreeCAD.ActiveDocument.Objects:
-#    if obj.ViewObject.isVisible():
-#        fulllist = fulllist.append(obj)
-#print(fulllist)
+App.ActiveDocument.addObject("Part::Plane","Plane1")
+App.ActiveDocument.Plane1.Length=20
+App.ActiveDocument.Plane1.Width=1000
+App.ActiveDocument.Plane1.Placement=App.Placement(App.Vector(0,-600,4),App.Rotation(App.Vector(0,-1,0),90))
+App.ActiveDocument.Plane1.Label='Plane1'
 
+App.ActiveDocument.addObject("Part::Plane","Plane2")
+App.ActiveDocument.Plane2.Length=20
+App.ActiveDocument.Plane2.Width=1000
+App.ActiveDocument.Plane2.Placement=App.Placement(App.Vector(200,-600,4),App.Rotation(App.Vector(0,-1,0),90))
+App.ActiveDocument.Plane2.Label='Plane2'
+
+App.ActiveDocument.addObject("Part::Plane","Plane3")
+App.ActiveDocument.Plane3.Length=20
+App.ActiveDocument.Plane3.Width=1000
+App.ActiveDocument.Plane3.Placement=App.Placement(App.Vector(400,-600,4),App.Rotation(App.Vector(0,-1,0),90))
+App.ActiveDocument.Plane3.Label='Plane3'
 
 setview()
 
