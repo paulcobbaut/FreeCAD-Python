@@ -15,9 +15,9 @@ import BOPTools.JoinFeatures
 document = FreeCAD.activeDocument()
 document_name = "Scripted"
 
-# number of pieces in grid
-rows = 6
-cols = 4
+# number of pieces in grid (max 25!)
+rows = 4
+cols = 10
 
 # Dimensions for squared puzzle pieces in mm
 """ top view showing width and length (x and y in FreeCAD)
@@ -85,9 +85,13 @@ mortise_height = tenon_height
 
 # Organization of puzzle pieces from 0,0 point right and up (coordinate = right+up)
 """
-B AB BB
-A AA BA
-  A  B
+naming of each piece resembles paper maps
+example four by four grid
+
+ DA DB DC DD
+ CA CB CC CD
+ BA BB BC BD
+ AA AB AC AD
 """
 
 
