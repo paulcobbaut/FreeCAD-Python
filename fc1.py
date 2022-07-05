@@ -102,14 +102,6 @@ example four by four grid
  AA AB AC AD
 """
 
-print("we zijn hier weer")
-print("we zijn hier weer")
-print("we zijn hier weer")
-print("we zijn hier weer")
-print("we zijn hier weer")
-print("we zijn hier weer")
-print("we zijn hier weer")
-
 def make_cube(name, x, y, z):
     obj = document.addObject("Part::Box", name)
     obj.Length = x
