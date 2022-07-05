@@ -118,6 +118,14 @@ def make_cube(name, x, y, z):
     document.recompute()
     return obj
 
+def make_plane(name, length, width, posx, posy, posz, axx, axy, axz):
+    """ make a plane of lenght and width; at position posx, posy, posz; using axises axx, axy, axz """
+    c = document.addObject("Part::Plane", name)
+    c.Length = length
+    c.Width = width
+    c.Placement = FreeCAD.Placement(FreeCAD.Vector(posx, posy, posz), FreeCAD.Rotation(FreeCAD.Vector(axx, axy, axz), 90))
+    return c
+
 # create document
 if document is None:
     FreeCAD.newDocument(document_name)
@@ -226,7 +234,6 @@ document.removeObject('mortise_left_bottom')
 # -- then edited with Inkscape to remove redundant layers
 # -- then edited with vi to remove <g> and <text> and the rect
 importSVG.insert(svg_filename,"Scripted")
-document.recompute()
 
 # convert all path to pipe
 for obj in FreeCAD.ActiveDocument.Objects:
@@ -237,25 +244,14 @@ for obj in FreeCAD.ActiveDocument.Objects:
 
 document.recompute()
 
-""" make a plane of lenght and width; at position posx, posy, posz; using axises axx, axy, axz 
-def make_plane(name, length, width, posx, posy, posz, axx, axy, axz):
-    obj = document.addObject("Part::Plane", name)
-    obj.Length = length
-    obj.Width = width
-    obj.Placement = App.Placement(App.Vector(posx, posy, posz), App.Rotation(App.Vector(axx, axy, axz), 90))
-    return obj
-"""
 
-#plane1 = make_plane("plane1", 20, 600,   0, -500, 4, 0, -1, 0)
-
-"""
 # create planes for cutting
+plane1 = make_plane("plane1", 20, 600,   0, -500, 4, 0, -1, 0)
 plane2 = make_plane("plane2", 20, 600, 200, -500, 4, 0, -1, 0)
 plane3 = make_plane("plane3", 20, 600, 400, -500, 4, 0, -1, 0)
 
 plane4 = make_plane("plane4", 600, 20, 0, 0, 4, 1, 0, 0)
 plane5 = make_plane("plane5", 600, 20, 0, -200, 4, 1, 0, 0)
 plane6 = make_plane("plane6", 600, 20, 0, -400, 4, 1, 0, 0)
-"""
 
 
