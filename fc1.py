@@ -18,9 +18,13 @@ import BOPTools.JoinFeatures
 document = FreeCAD.activeDocument()
 document_name = "Scripted"
 
+# SVG file to be imported
+svg_filename = "/home/paul/drawing.svg"
+
 # number of pieces in grid (max 25!)
 rows = 2
 cols = 2
+
 
 # Dimensions for squared puzzle pieces in mm
 """ top view showing width and length (x and y in FreeCAD)
@@ -98,18 +102,13 @@ example four by four grid
  AA AB AC AD
 """
 
-
-def clear_doc():
-    """
-    Clear the active document deleting all the objects
-    """
-    for obj in document.Objects:
-        document.removeObject(obj.Name)
-
-def setview():
-    """Rearrange View"""
-    FreeCAD.Gui.SendMsgToActiveView("ViewFit")
-    FreeCAD.Gui.activeDocument().activeView().viewAxometric()
+print("we zijn hier weer")
+print("we zijn hier weer")
+print("we zijn hier weer")
+print("we zijn hier weer")
+print("we zijn hier weer")
+print("we zijn hier weer")
+print("we zijn hier weer")
 
 def make_cube(name, x, y, z):
     obj = document.addObject("Part::Box", name)
@@ -119,19 +118,17 @@ def make_cube(name, x, y, z):
     document.recompute()
     return obj
 
+# create document
 if document is None:
     FreeCAD.newDocument(document_name)
     FreeCAD.setActiveDocument(document_name)
     document = FreeCAD.activeDocument()
-else:
-    clear_doc()
-
 
 # make base
 piece = make_cube("piece", piece_length, piece_width, piece_height)
 
 # place base
-App.ActiveDocument.piece.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
+document.piece.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
 
 
 # make and place tenons on the right
@@ -172,88 +169,93 @@ for i in range(len(mortises_on_left_tuple)):
 
 
 # make compound of all mortises
-App.activeDocument().addObject("Part::Compound","mortises")
-App.activeDocument().mortises.Links = [App.activeDocument().mortise_top_right, App.activeDocument().mortise_top_left, App.activeDocument().mortise_left_top, App.activeDocument().mortise_left_bottom]
-App.ActiveDocument.recompute()
-
+document.addObject("Part::Compound","mortises")
+document.mortises.Links = [document.mortise_top_right, document.mortise_top_left, document.mortise_left_top, document.mortise_left_bottom]
 
 # join piece with tenons
 j = BOPTools.JoinFeatures.makeConnect(name='piece_and_tenons')
-j.Objects = [App.ActiveDocument.piece, App.ActiveDocument.tenon_right_top, App.ActiveDocument.tenon_right_bottom, App.ActiveDocument.tenon_bottom_left, App.ActiveDocument.tenon_bottom_right]
+j.Objects = [document.piece, document.tenon_right_top, document.tenon_right_bottom, document.tenon_bottom_left, document.tenon_bottom_right]
 j.Proxy.execute(j)
-j.purgeTouched()
-for obj in j.ViewObject.Proxy.claimChildren():
-    obj.ViewObject.hide()
-
+#j.purgeTouched()
+#for obj in j.ViewObject.Proxy.claimChildren():
+#    obj.ViewObject.hide()
+#j.ViewObject.hide()
 
 # cutout piece with mortises
 j = BOPTools.JoinFeatures.makeCutout(name='piece_template')
-j.Base = App.ActiveDocument.piece_and_tenons
-j.Tool = App.ActiveDocument.mortises
+j.Base = document.piece_and_tenons
+j.Tool = document.mortises
 j.Proxy.execute(j)
-j.purgeTouched()
-for obj in j.ViewObject.Proxy.claimChildren():
-    obj.ViewObject.hide()
-j.ViewObject.hide()
+#j.purgeTouched()
+#for obj in j.ViewObject.Proxy.claimChildren():
+#    obj.ViewObject.hide()
+#j.ViewObject.hide()
 
+#document.recompute()
 
 # loop creating copies in grid
-"""
-naming of each piece resembles paper maps
-example four by four grid
-
- DA DB DC DD
- CA CB CC CD
- BA BB BC BD
- AA AB AC AD
-"""
-
 abc = "abcdefghijklmnopqrstuvwxyz"
 offset = piece_length + piece_separation
 
 for i in range(rows):
     for j in range(cols):
         current_label = "piece_" + abc[i] + abc[j]
-        obj = App.ActiveDocument.addObject('Part::Feature','piece_template')
-        App.ActiveDocument.recompute()
-        obj.Shape=App.ActiveDocument.piece_template.Shape
-        App.ActiveDocument.ActiveObject.Label = current_label
-        App.ActiveDocument.ActiveObject.Placement = FreeCAD.Placement(Vector(offset * j, - offset * i - piece_length, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+        obj = document.addObject('Part::Feature','piece_template')
+        obj.Shape = document.piece_template.Shape
+        obj.Label = current_label
+        obj.Placement = FreeCAD.Placement(Vector(offset * j, - offset * i - piece_length, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+
+
+# remove obsolete objects
+document.removeObject('piece')
+document.removeObject('piece_template')
+document.removeObject('piece_and_tenons')
+document.removeObject('mortises')
+document.removeObject('tenon_right_top')
+document.removeObject('tenon_right_bottom')
+document.removeObject('tenon_bottom_left')
+document.removeObject('tenon_bottom_right')
+document.removeObject('mortise_top_left')
+document.removeObject('mortise_top_right')
+document.removeObject('mortise_left_top')
+document.removeObject('mortise_left_bottom')
 
 
 # import svg file
 # -- SVG created with Maperitive to correct size
 # -- then edited with Inkscape to remove redundant layers
 # -- then edited with vi to remove <g> and <text> and the rect
-importSVG.insert(u"/home/paul/drawing.svg","Scripted")
-App.ActiveDocument.recompute()
+importSVG.insert(svg_filename,"Scripted")
+document.recompute()
 
 # convert all path to pipe
 for obj in FreeCAD.ActiveDocument.Objects:
     if obj.Name.find("path")!=-1:
-        obj.Placement = FreeCAD.Placement(Vector(-10.00,0.00,5.00),FreeCAD.Rotation(Vector(0.00,0.00,1.00),0.00))
-        App.ActiveDocument.recompute()
-        Arch.makePipe(obj)
-#        print(obj.Label)
+        obj.Placement = FreeCAD.Placement(Vector(-10.00,0.00,4.00),FreeCAD.Rotation(Vector(0.00,0.00,1.00),0.00))
+        Arch.makePipe(obj, diameter = 2.5)
+        print(obj.Label)
 
+document.recompute()
 
-App.ActiveDocument.addObject("Part::Plane","Plane1")
-App.ActiveDocument.Plane1.Length=20
-App.ActiveDocument.Plane1.Width=1000
-App.ActiveDocument.Plane1.Placement=App.Placement(App.Vector(0,-600,4),App.Rotation(App.Vector(0,-1,0),90))
-App.ActiveDocument.Plane1.Label='Plane1'
+""" make a plane of lenght and width; at position posx, posy, posz; using axises axx, axy, axz 
+def make_plane(name, length, width, posx, posy, posz, axx, axy, axz):
+    obj = document.addObject("Part::Plane", name)
+    obj.Length = length
+    obj.Width = width
+    obj.Placement = App.Placement(App.Vector(posx, posy, posz), App.Rotation(App.Vector(axx, axy, axz), 90))
+    return obj
+"""
 
-App.ActiveDocument.addObject("Part::Plane","Plane2")
-App.ActiveDocument.Plane2.Length=20
-App.ActiveDocument.Plane2.Width=1000
-App.ActiveDocument.Plane2.Placement=App.Placement(App.Vector(200,-600,4),App.Rotation(App.Vector(0,-1,0),90))
-App.ActiveDocument.Plane2.Label='Plane2'
+#plane1 = make_plane("plane1", 20, 600,   0, -500, 4, 0, -1, 0)
 
-App.ActiveDocument.addObject("Part::Plane","Plane3")
-App.ActiveDocument.Plane3.Length=20
-App.ActiveDocument.Plane3.Width=1000
-App.ActiveDocument.Plane3.Placement=App.Placement(App.Vector(400,-600,4),App.Rotation(App.Vector(0,-1,0),90))
-App.ActiveDocument.Plane3.Label='Plane3'
+"""
+# create planes for cutting
+plane2 = make_plane("plane2", 20, 600, 200, -500, 4, 0, -1, 0)
+plane3 = make_plane("plane3", 20, 600, 400, -500, 4, 0, -1, 0)
 
-setview()
+plane4 = make_plane("plane4", 600, 20, 0, 0, 4, 1, 0, 0)
+plane5 = make_plane("plane5", 600, 20, 0, -200, 4, 1, 0, 0)
+plane6 = make_plane("plane6", 600, 20, 0, -400, 4, 1, 0, 0)
+"""
+
 
