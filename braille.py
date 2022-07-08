@@ -122,101 +122,41 @@ braille = {
   " " : ""
 }
 
-
+# This seems needed, otherwise nothing appears in FreeCAD
 doc.recompute()
 
-# place a dot in 1
-def place_a_dot_in_1():
-    global char_count
-    obj = doc.addObject('Part::Feature','dot')
+
+# place a dot in the correct position
+def place_a_dot(dot_number):					# dot_number is Braille dot 1, 2, 3, 4, 5 or 6
+    global char_count						# so we can move further one char_separation for each character
+    obj = doc.addObject('Part::Feature','dot')			# copy the template dot
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + "1"
-    x = char_count * char_separation
-    y = dot_separation * 2
-    position = FreeCAD.Vector(x,y,0)
-    rotation = FreeCAD.Rotation(180,0,90)
-    obj.Placement = FreeCAD.Placement(position, rotation)
-
-
-# place a dot in 2
-def place_a_dot_in_2():
-    global char_count
-    obj = doc.addObject('Part::Feature','dot')
-    obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + "2"
-    x = char_count * char_separation
-    y = dot_separation * 1
-    position = FreeCAD.Vector(x,y,0)
-    rotation = FreeCAD.Rotation(180,0,90)
-    obj.Placement = FreeCAD.Placement(position, rotation)
-
-
-# place a dot in 3
-def place_a_dot_in_3():
-    global char_count
-    obj = doc.addObject('Part::Feature','dot')
-    obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + "3"
-    x = char_count * char_separation
-    y = dot_separation * 0
-    position = FreeCAD.Vector(x,y,0)
-    rotation = FreeCAD.Rotation(180,0,90)
-    obj.Placement = FreeCAD.Placement(position, rotation)
-
-
-# place a dot in 4
-def place_a_dot_in_4():
-    global char_count
-    obj = doc.addObject('Part::Feature','dot')
-    obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + "4"
-    x = char_count * char_separation + dot_separation
-    y = dot_separation * 2
-    position = FreeCAD.Vector(x,y,0)
-    rotation = FreeCAD.Rotation(180,0,90)
-    obj.Placement = FreeCAD.Placement(position, rotation)
-
-
-# place a dot in 5
-def place_a_dot_in_5():
-    global char_count
-    obj = doc.addObject('Part::Feature','dot')
-    obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + "5"
-    x = char_count * char_separation + dot_separation
-    y = dot_separation * 1
-    position = FreeCAD.Vector(x,y,0)
-    rotation = FreeCAD.Rotation(180,0,90)
-    obj.Placement = FreeCAD.Placement(position, rotation)
-
-
-# place a dot in 6
-def place_a_dot_in_6():
-    global char_count
-    obj = doc.addObject('Part::Feature','dot')
-    obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + "6"
-    x = char_count * char_separation + dot_separation
-    y = dot_separation * 0
-    position = FreeCAD.Vector(x,y,0)
-    rotation = FreeCAD.Rotation(180,0,90)
-    obj.Placement = FreeCAD.Placement(position, rotation)
+    obj.Label = "dot" + str(char_count) + str(dot_number)	# name has 'some' meaning: dot + character position + Braille dot
+    left_right = dot_number >> 2				# 0 if 1,2 or 3, 1 if 4, 5 or 6 (zero means dot on the left, one means dot on the right)
+    char_position = char_count * char_separation		# this is the n-th character (n = char_count + 1 )
+    dot_position = dot_separation * left_right                  # this is either a 123 dot on the left, or a 456 dot on the right
+    x = char_position + dot_position
+    y = dot_separation * (- dot_number % 3)			# negative modulo 3 gives Y coordinate (three dots above each other)
+    position = FreeCAD.Vector(x, y, 0)
+    rotation = FreeCAD.Rotation(180, 0, 90)
+    obj.Placement = FreeCAD.Placement(position, rotation)	# put copied and named dot in correct location
 
 
 # prints one Braille character
 def print_braille_character(char):
     if "1" in braille[char]:
-        place_a_dot_in_1()
+        place_a_dot(1)
     if "2" in braille[char]:
-        place_a_dot_in_2()
+        place_a_dot(2)
     if "3" in braille[char]:
-        place_a_dot_in_3()
+        place_a_dot(3)
     if "4" in braille[char]:
-        place_a_dot_in_4()
+        place_a_dot(4)
     if "5" in braille[char]:
-        place_a_dot_in_5()
+        place_a_dot(5)
     if "6" in braille[char]:
-        place_a_dot_in_6()
+        place_a_dot(6)
+
 
 # prints one Braille string
 def print_braille_string(string):
@@ -227,10 +167,10 @@ def print_braille_string(string):
             if previous_is_digit == False:
                 previous_is_digit = True
                 # Braille Number Indicator = "3456"
-                place_a_dot_in_3()
-                place_a_dot_in_4()
-                place_a_dot_in_5()
-                place_a_dot_in_6()
+                place_a_dot(3)
+                place_a_dot(4)
+                place_a_dot(5)
+                place_a_dot(6)
                 char_count = char_count + 1
         else:
             previous_is_digit = False
@@ -238,7 +178,7 @@ def print_braille_string(string):
         char_count = char_count + 1
 
 
-#print_braille_string("abcdefghijklmnopqrstuvwxyz1234567890")
+#print_braille_string("abcdefghijklmnopqrstuvwxyz  1234567890")
 print_braille_string("dit is braille 1 en 2 en 42")
 
 
