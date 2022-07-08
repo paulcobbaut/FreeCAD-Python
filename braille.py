@@ -73,6 +73,17 @@ w 	⠺ 	2456
 x 	⠭ 	1346
 y 	⠽ 	13456
 z 	⠵ 	1356
+number indicator 	⠼ 	3456
+1 	⠼⠁ 	3456 1
+2 	⠼⠃ 	3456 12
+3 	⠼⠉ 	3456 14
+4 	⠼⠙ 	3456 145
+5 	⠼⠑ 	3456 15
+6 	⠼⠋ 	3456 124
+7 	⠼⠛ 	3456 1245
+8 	⠼⠓ 	3456 125
+9 	⠼⠊ 	3456 24
+0 	⠼⠚ 	3456 245
 """
 
 braille = {
@@ -101,9 +112,20 @@ braille = {
   "w" : "2456",
   "x" : "1346",
   "y" : "13456",
-  "z" : "1356"
+  "z" : "1356",
+  "1" : "1",
+  "2" : "12",
+  "3" : "14",
+  "4" : "145",
+  "5" : "15",
+  "6" : "124",
+  "7" : "1245",
+  "8" : "125",
+  "9" : "24",
+  "0" : "245"
 }
 
+numberindicator = "3456"
 
 doc.recompute()
 
@@ -203,10 +225,17 @@ def print_braille_character(char):
 def print_braille_word(brailleword):
     for letter in brailleword:
         global charcount
+        if letter.isdigit():
+            place_a_dot_in_3()
+            place_a_dot_in_4()
+            place_a_dot_in_5()
+            place_a_dot_in_6()
+            charcount = charcount + 1
         print_braille_character(letter)
         charcount = charcount + 1
 
-print_braille_word("abcdefghijklmnopqrstuvwxyz")
+
+print_braille_word("abcdefghijklmnopqrstuvwxyz1234567890")
 
 
 
