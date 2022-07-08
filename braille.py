@@ -13,29 +13,23 @@ doc = FreeCAD.newDocument("Braille demo")
 
 
 # Font size
-dotsize = 3         # diameter in mm
-dotseparation = 8   # space between center of dots
-charseparation = 24 # space between characters
+dot_size = 3         # diameter in mm
+dot_separation = 8   # space between center of dots
+char_separation = 24 # space between characters
 
-# Number of characters that are 'printed'
-charcount = 0
-
-def make_cube(name, x, y, z):
-    o = doc.addObject("Part::Box", name)
-    o.Length = x
-    o.Width = y
-    o.Height = z
-    return o
+# Number of characters that are 'printed' on a single line
+char_count = 0
 
 
-# The standard dot that is always copied
+# This is the standard dot that is always copied
 dot = doc.addObject("Part::Sphere", "dot")
-dot.Radius = dotsize
+dot.Radius = dot_size
 dot.Angle1 = -90
 dot.Angle2 = 90
 dot.Angle3 = 180
 dot.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(180, 0, 90))
 dot.ViewObject.hide()
+
 
 # positions of braille dots
 """
@@ -86,6 +80,8 @@ number indicator 	⠼ 	3456
 0 	⠼⠚ 	3456 245
 """
 
+
+# dictionary character : dots printed
 braille = {
   "a" : "1",
   "b" : "12",
@@ -126,30 +122,30 @@ braille = {
   " " : ""
 }
 
-numberindicator = "3456"
 
 doc.recompute()
 
 # place a dot in 1
 def place_a_dot_in_1():
-    global charcount
+    global char_count
     obj = doc.addObject('Part::Feature','dot')
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(charcount) + "1"
-    x = charcount * charseparation
-    y = dotseparation * 2
+    obj.Label = "dot" + str(char_count) + "1"
+    x = char_count * char_separation
+    y = dot_separation * 2
     position = FreeCAD.Vector(x,y,0)
     rotation = FreeCAD.Rotation(180,0,90)
     obj.Placement = FreeCAD.Placement(position, rotation)
 
+
 # place a dot in 2
 def place_a_dot_in_2():
-    global charcount
+    global char_count
     obj = doc.addObject('Part::Feature','dot')
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(charcount) + "2"
-    x = charcount * charseparation
-    y = dotseparation * 1
+    obj.Label = "dot" + str(char_count) + "2"
+    x = char_count * char_separation
+    y = dot_separation * 1
     position = FreeCAD.Vector(x,y,0)
     rotation = FreeCAD.Rotation(180,0,90)
     obj.Placement = FreeCAD.Placement(position, rotation)
@@ -157,12 +153,12 @@ def place_a_dot_in_2():
 
 # place a dot in 3
 def place_a_dot_in_3():
-    global charcount
+    global char_count
     obj = doc.addObject('Part::Feature','dot')
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(charcount) + "3"
-    x = charcount * charseparation
-    y = dotseparation * 0
+    obj.Label = "dot" + str(char_count) + "3"
+    x = char_count * char_separation
+    y = dot_separation * 0
     position = FreeCAD.Vector(x,y,0)
     rotation = FreeCAD.Rotation(180,0,90)
     obj.Placement = FreeCAD.Placement(position, rotation)
@@ -170,12 +166,12 @@ def place_a_dot_in_3():
 
 # place a dot in 4
 def place_a_dot_in_4():
-    global charcount
+    global char_count
     obj = doc.addObject('Part::Feature','dot')
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(charcount) + "4"
-    x = charcount * charseparation + dotseparation
-    y = dotseparation * 2
+    obj.Label = "dot" + str(char_count) + "4"
+    x = char_count * char_separation + dot_separation
+    y = dot_separation * 2
     position = FreeCAD.Vector(x,y,0)
     rotation = FreeCAD.Rotation(180,0,90)
     obj.Placement = FreeCAD.Placement(position, rotation)
@@ -183,12 +179,12 @@ def place_a_dot_in_4():
 
 # place a dot in 5
 def place_a_dot_in_5():
-    global charcount
+    global char_count
     obj = doc.addObject('Part::Feature','dot')
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(charcount) + "5"
-    x = charcount * charseparation + dotseparation
-    y = dotseparation * 1
+    obj.Label = "dot" + str(char_count) + "5"
+    x = char_count * char_separation + dot_separation
+    y = dot_separation * 1
     position = FreeCAD.Vector(x,y,0)
     rotation = FreeCAD.Rotation(180,0,90)
     obj.Placement = FreeCAD.Placement(position, rotation)
@@ -196,17 +192,18 @@ def place_a_dot_in_5():
 
 # place a dot in 6
 def place_a_dot_in_6():
-    global charcount
+    global char_count
     obj = doc.addObject('Part::Feature','dot')
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(charcount) + "6"
-    x = charcount * charseparation + dotseparation
-    y = dotseparation * 0
+    obj.Label = "dot" + str(char_count) + "6"
+    x = char_count * char_separation + dot_separation
+    y = dot_separation * 0
     position = FreeCAD.Vector(x,y,0)
     rotation = FreeCAD.Rotation(180,0,90)
     obj.Placement = FreeCAD.Placement(position, rotation)
 
 
+# prints one Braille character
 def print_braille_character(char):
     if "1" in braille[char]:
         place_a_dot_in_1()
@@ -221,28 +218,28 @@ def print_braille_character(char):
     if "6" in braille[char]:
         place_a_dot_in_6()
 
-#print_braille_character("a")
-
-def print_braille_word(brailleword):
+# prints one Braille string
+def print_braille_string(string):
     previous_is_digit = False
-    for letter in brailleword:
-        global charcount
+    for letter in string:
+        global char_count
         if letter.isdigit():
             if previous_is_digit == False:
                 previous_is_digit = True
+                # Braille Number Indicator = "3456"
                 place_a_dot_in_3()
                 place_a_dot_in_4()
                 place_a_dot_in_5()
                 place_a_dot_in_6()
-                charcount = charcount + 1
+                char_count = char_count + 1
         else:
             previous_is_digit = False
         print_braille_character(letter)
-        charcount = charcount + 1
+        char_count = char_count + 1
 
 
-#print_braille_word("abcdefghijklmnopqrstuvwxyz1234567890")
-print_braille_word("dit is braille 1 en 2 en 42")
+#print_braille_string("abcdefghijklmnopqrstuvwxyz1234567890")
+print_braille_string("dit is braille 1 en 2 en 42")
 
 
 
