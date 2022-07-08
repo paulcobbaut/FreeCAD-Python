@@ -28,10 +28,7 @@ def make_cube(name, x, y, z):
     return o
 
 
-# make base (resembling A4) to put demo font on
-# paper = make_cube("paper", 297, 210, 1)
-
-
+# The standard dot that is always copied
 dot = doc.addObject("Part::Sphere", "dot")
 dot.Radius = dotsize
 dot.Angle1 = -90
@@ -41,9 +38,12 @@ dot.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(180, 0, 90))
 dot.ViewObject.hide()
 
 # positions of braille dots
+"""
 14
 25
 36
+"""
+
 
 # braille alphabet
 """
@@ -122,7 +122,8 @@ braille = {
   "7" : "1245",
   "8" : "125",
   "9" : "24",
-  "0" : "245"
+  "0" : "245",
+  " " : ""
 }
 
 numberindicator = "3456"
@@ -223,19 +224,25 @@ def print_braille_character(char):
 #print_braille_character("a")
 
 def print_braille_word(brailleword):
+    previous_is_digit = False
     for letter in brailleword:
         global charcount
         if letter.isdigit():
-            place_a_dot_in_3()
-            place_a_dot_in_4()
-            place_a_dot_in_5()
-            place_a_dot_in_6()
-            charcount = charcount + 1
+            if previous_is_digit == False:
+                previous_is_digit = True
+                place_a_dot_in_3()
+                place_a_dot_in_4()
+                place_a_dot_in_5()
+                place_a_dot_in_6()
+                charcount = charcount + 1
+        else:
+            previous_is_digit = False
         print_braille_character(letter)
         charcount = charcount + 1
 
 
-print_braille_word("abcdefghijklmnopqrstuvwxyz1234567890")
+#print_braille_word("abcdefghijklmnopqrstuvwxyz1234567890")
+print_braille_word("dit is braille 1 en 2 en 42")
 
 
 
