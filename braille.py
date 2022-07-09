@@ -11,7 +11,6 @@ import Part
 # FreeCAD document
 doc = FreeCAD.newDocument("Braille demo")
 
-
 # Font size
 dot_size = 3         # diameter in mm
 dot_separation = 8   # space between center of dots
@@ -132,7 +131,7 @@ def place_a_dot(dot_number):					# dot_number is Braille dot 1, 2, 3, 4, 5 or 6
     global char_count						# so we can move further one char_separation for each character
     obj = doc.addObject('Part::Feature','dot')			# copy the template dot
     obj.Shape = doc.dot.Shape
-    obj.Label = "dot" + str(char_count) + str(dot_number)	# name has 'some' meaning: dot + character position + Braille dot
+    obj.Label = "dot_" + str(line_count) + "_" + str(char_count) + "_" + str(dot_number)	# name has 'some' meaning: dot + character position + Braille dot
     # Get X coordinate
     left_right = dot_number >> 2				# 0 if 1,2 or 3, 1 if 4, 5 or 6 (zero means dot on the left, one means dot on the right)
     char_position = char_count * char_separation		# this is the n-th character (n = char_count + 1 )
@@ -190,5 +189,4 @@ print_braille_string("abcdefghijklmnopqrstuvwxyz  1234567890")
 print_braille_string("dit is braille 1 en 2 en 42")
 print_braille_string("alea jacta est")
 print_braille_string("2 4 8 16 32 64 128 256")
-
 
