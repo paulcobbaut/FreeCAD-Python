@@ -12,8 +12,7 @@ rows = 25
 cols = 25 (screenshot from 2022-07-04)
 ![freecad_script_20220704](https://user-images.githubusercontent.com/524195/177157183-c7c43157-7325-40af-9b24-c55d0e2bc085.png)
 
+
 **braille.py** creates braille dots from text (wip)
-
-a-z
-
-![FreeCAD_braille20220708](https://user-images.githubusercontent.com/524195/178000477-0364ed08-d924-4bf1-8948-5f3b9281b06d.png)
+It support lettes a-z and numbers 0-9 and a space character, and can print multiple lines.
+![freecad_braille_20220708](https://user-images.githubusercontent.com/524195/178057949-d351412e-e574-4545-9b97-e1c170e0b206.png)
