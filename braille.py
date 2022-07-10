@@ -1,7 +1,8 @@
 """
 braille.py
 Paul Cobbaut, 2022-07-05
-Attempting to create FreeCAD Braille font
+FreeCAD Braille font
+This script parses text and converts it to Braille dots in FreeCAD
 """
 
 import FreeCAD
@@ -11,27 +12,14 @@ import Part
 # FreeCAD document
 doc = FreeCAD.newDocument("Braille demo")
 
-# Font size
-dot_size = 3         # diameter in mm
+# These four define the size of the dots in mmm
+dot_size = 3         # diameter of a dot
 dot_separation = 8   # space between center of dots
-char_separation = 24 # space between characters
-line_separation = 32 # space between lines
-
-# Number of characters that are 'printed' on a single line
-char_count = 0
-line_count = 0
-
-# This is the standard dot that is always copied
-dot = doc.addObject("Part::Sphere", "dot")
-dot.Radius = dot_size
-dot.Angle1 = -90
-dot.Angle2 = 90
-dot.Angle3 = 180
-dot.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(180, 0, 90))
-dot.ViewObject.hide()
+char_separation = 24 # space between center of characters
+line_separation = 32 # space between center of lines
 
 
-# positions of braille dots
+# position of Braille dots
 """
 14
 25
@@ -39,7 +27,8 @@ dot.ViewObject.hide()
 """
 
 
-# braille alphabet
+# Braille alphabet
+# List of supported characters
 """
 a 	⠁ 	1
 b 	⠃ 	12
@@ -122,13 +111,21 @@ braille = {
   " " : ""
 }
 
-# This seems needed, otherwise nothing appears in FreeCAD
-doc.recompute()
+
+# create the template dot that is always copied
+def create_template_dot():
+    dot = doc.addObject("Part::Sphere", "dot")
+    dot.Radius = dot_size
+    dot.Angle1 = -90
+    dot.Angle2 = 90
+    dot.Angle3 = 180
+    dot.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(180, 0, 90))
+    dot.ViewObject.hide()
+    doc.recompute()	# This seems needed, otherwise nothing appears in FreeCAD
 
 
 # place a dot in the correct position
-def place_a_dot(dot_number):					# dot_number is Braille dot 1, 2, 3, 4, 5 or 6
-    global char_count						# so we can move further one char_separation for each character
+def place_a_dot(dot_number, char_count, line_count):		# dot_number is Braille dot 1, 2, 3, 4, 5 or 6
     obj = doc.addObject('Part::Feature','dot')			# copy the template dot
     obj.Shape = doc.dot.Shape
     obj.Label = "dot_" + str(line_count) + "_" + str(char_count) + "_" + str(dot_number)	# name has 'some' meaning: dot + character position + Braille dot
@@ -146,47 +143,46 @@ def place_a_dot(dot_number):					# dot_number is Braille dot 1, 2, 3, 4, 5 or 6
     obj.Placement = FreeCAD.Placement(position, rotation)	# put copied and named dot in correct location
 
 
-# prints one Braille character
-def print_braille_character(char):
-    if "1" in braille[char]:
-        place_a_dot(1)
-    if "2" in braille[char]:
-        place_a_dot(2)
-    if "3" in braille[char]:
-        place_a_dot(3)
-    if "4" in braille[char]:
-        place_a_dot(4)
-    if "5" in braille[char]:
-        place_a_dot(5)
-    if "6" in braille[char]:
-        place_a_dot(6)
-
-
 # prints one Braille string
-def print_braille_string(string):
+def print_braille_string(string, line_count):
+    # keeps track of the n-th character on each line
+    # is used for the position of the current character
+    char_count = 0
+    # when this is True, then put no 'Number Indicator' in Braille
     previous_is_digit = False
     for letter in string:
-        global char_count
         char_count = char_count + 1
         if letter.isdigit():
             if previous_is_digit == False:
                 previous_is_digit = True
                 # Braille Number Indicator = "3456"
-                place_a_dot(3)
-                place_a_dot(4)
-                place_a_dot(5)
-                place_a_dot(6)
+                place_a_dot(3, char_count, line_count)
+                place_a_dot(4, char_count, line_count)
+                place_a_dot(5, char_count, line_count)
+                place_a_dot(6, char_count, line_count)
                 char_count = char_count + 1
         else:
             previous_is_digit = False
-        print_braille_character(letter)
-    global line_count
+        for i in range(1,7):
+            if str(i) in braille[letter]:
+                place_a_dot(i, char_count, line_count)
+
+
+# program starts here
+def main():
+    create_template_dot()
+    # line_count keeps track of the n-th line
+    # is used for the position of the current line
+    line_count = 0
+
+    print_braille_string("abcdefghijklmnopqrstuvwxyz  1234567890", line_count)
     line_count = line_count + 1
-    char_count = 0
+    print_braille_string("dit is braille 1 en 2 en 42", line_count)
+    line_count = line_count + 1
+    print_braille_string("alea jacta est", line_count)
+    line_count = line_count + 1
+    print_braille_string("2 4 8 16 32 64 128 256", line_count)
 
 
-print_braille_string("abcdefghijklmnopqrstuvwxyz  1234567890")
-print_braille_string("dit is braille 1 en 2 en 42")
-print_braille_string("alea jacta est")
-print_braille_string("2 4 8 16 32 64 128 256")
+main()
 
