@@ -141,6 +141,7 @@ def place_a_dot(dot_number, char_count, line_count):		# dot_number is Braille do
     position = FreeCAD.Vector(x, y, 0)
     rotation = FreeCAD.Rotation(180, 0, 90)
     obj.Placement = FreeCAD.Placement(position, rotation)	# put copied and named dot in correct location
+    return obj
 
 
 # prints one Braille string
@@ -148,6 +149,8 @@ def print_braille_string(string, line_count):
     # keeps track of the n-th character on each line
     # is used for the position of the current character
     char_count = 0
+    # list te create compound when string is written
+    compound_list = []
     # when this is True, then put no 'Number Indicator' in Braille
     previous_is_digit = False
     for letter in string:
@@ -156,16 +159,25 @@ def print_braille_string(string, line_count):
             if previous_is_digit == False:
                 previous_is_digit = True
                 # Braille Number Indicator = "3456"
-                place_a_dot(3, char_count, line_count)
-                place_a_dot(4, char_count, line_count)
-                place_a_dot(5, char_count, line_count)
-                place_a_dot(6, char_count, line_count)
+                obj = place_a_dot(3, char_count, line_count)
+                compound_list.append(obj)
+                obj = place_a_dot(4, char_count, line_count)
+                compound_list.append(obj)
+                obj = place_a_dot(5, char_count, line_count)
+                compound_list.append(obj)
+                obj = place_a_dot(6, char_count, line_count)
+                compound_list.append(obj)
                 char_count = char_count + 1
         else:
             previous_is_digit = False
         for i in range(1,7):
             if str(i) in braille[letter]:
-                place_a_dot(i, char_count, line_count)
+                obj = place_a_dot(i, char_count, line_count)
+                compound_list.append(obj)
+    line_name = "line_" + str(line_count)
+    obj = doc.addObject("Part::Compound",line_name)
+    obj.Links = compound_list
+    doc.recompute()	# This seems needed, otherwise nothing appears in FreeCAD
 
 
 # program starts here
