@@ -18,6 +18,8 @@ import Sketcher
 
 # FreeCAD document
 doc = FreeCAD.newDocument("Dovetail scripted")
+obj = doc.addObject("PartDesign::Body", "Body")
+#obj.Label = "custom name for body"
 
 # Dimensions for squared puzzle pieces in mm
 """ top view showing width and length (x and y in FreeCAD)
@@ -35,7 +37,7 @@ doc = FreeCAD.newDocument("Dovetail scripted")
 
 
 """
-piece_length = 200               # X-coordinate in FreeCAD
+piece_length = 180               # X-coordinate in FreeCAD
 piece_width = piece_length       # Y-coordinate in FreeCAD
 piece_height = 2                 # Z-coordinate in FreeCAD
 #piece_separation = piece_length / 5
@@ -106,11 +108,11 @@ dove_side = 1.732 * dove_length  # other side at 30 degree angle
 
 
 
-sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch = doc.getObject('Body').newObject("Sketcher::SketchObject", "Sketch")
 
 
 
-#sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(s, w, 0)), False)
+#addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(s, w, 0)), False)
 #sketch.addGeometry(Part.LineSegment(App.Vector(s, w, 0), App.Vector(s + l, w, 0)), False)
 #sketch.addGeometry(Part.LineSegment(App.Vector(s + l, w, 0), App.Vector(s + s + l, 0, 0)), False)
 #sketch.addGeometry(Part.LineSegment(App.Vector(s + s + l, 0, 0), App.Vector(0, 0, 0)), False)
@@ -243,6 +245,9 @@ doc.getObject('Sketch').addCopy([18,19,20,21,22,23,24,25,26], App.Vector(0, piec
 
 
 
+pad = doc.getObject('Body').newObject("PartDesign::Pad", "Pad")
+pad.Profile = doc.getObject("Sketch")
+pad.Length = 10
 
 
 
