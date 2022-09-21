@@ -19,13 +19,6 @@ import Sketcher
 # FreeCAD document
 doc = FreeCAD.newDocument("Dovetail scripted")
 
-# SVG file to be imported
-# svg_filename = "/home/paul/drawing.svg"
-
-# number of pieces in grid (max 25!)
-# rows = 2
-# cols = 2
-
 # Dimensions for squared puzzle pieces in mm
 """ top view showing width and length (x and y in FreeCAD)
 
@@ -80,6 +73,7 @@ pockets = ("top_left", "left_bottom", "right_top", "bottom_right")
 | /|          | /|
 |/ |          |/ |
    |          |  |
+   |          |  |
 |\ |          |\ |
 | \|          | \|
 |             |
@@ -92,60 +86,162 @@ top view showing W(idth) and L(ength) and A(ngle)
 |-------------|
 |             |
 |             |
-|A/|W         |A/|W
-|/ |W         |/ |W
+|A/|          |A/|
+|/ |          |/ |
    |W         |  |W
-|\ |W         |\ |W
-| \|W         | \|W
+   |W         |  |W
+|\ |          |\ |
+| \|          | \|
 |LLL          |LLL     
 |             |  
 |-------------|
 
 """
-width = piece_length / 10
-length = width
-angle = 30
-
-
-# Organization of puzzle pieces from 0,0 point right and up (coordinate = right+up)
-"""
-naming of each piece resembles paper maps
-example four by four grid
-
- DA DB DC DD
- CA CB CC CD
- BA BB BC BD
- AA AB AC AD
-"""
-
-
-def make_cube(name, x, y, z):
-    obj = doc.addObject("Part::Box", name)
-    obj.Length = x
-    obj.Width = y
-    obj.Height = z
-    doc.recompute()
-    return obj
-
-
-# make base
-#piece = make_cube("piece", piece_length, piece_width, piece_height)
-
-# place base
-#doc.piece.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
+dove_width = piece_length / 20
+dove_length = piece_length / 40
+#angle = 30
+dove_hyp = 2 * dove_length       # Hypotenuse at 30 degree angle
+dove_side = 1.732 * dove_length  # other side at 30 degree angle
 
 
 
 
 sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
-sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0),
-                                    App.Vector(5, 5, 0)), False)
-sketch.addGeometry(Part.LineSegment(App.Vector(5, 5, 0),
-                                    App.Vector(10, 5, 0)), False)
-sketch.addGeometry(Part.LineSegment(App.Vector(10, 5, 0),
-                                    App.Vector(12, 0, 0)), False)
-sketch.addGeometry(Part.LineSegment(App.Vector(12, 0, 0),
-                                    App.Vector(0, 0, 0)), False)
+
+
+
+#sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(s, w, 0)), False)
+#sketch.addGeometry(Part.LineSegment(App.Vector(s, w, 0), App.Vector(s + l, w, 0)), False)
+#sketch.addGeometry(Part.LineSegment(App.Vector(s + l, w, 0), App.Vector(s + s + l, 0, 0)), False)
+#sketch.addGeometry(Part.LineSegment(App.Vector(s + s + l, 0, 0), App.Vector(0, 0, 0)), False)
+
+
+# start drawing piece at origin
+x = 0
+y = (piece_length / 4) - (dove_width / 2)
+sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(x, y, 0)), False)
+
+# left_bottom pocket
+px = x
+py = y
+x = dove_length
+y = (piece_length / 4) - (dove_width / 2)  - dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+px = x
+py = y
+x = dove_length
+y = (piece_length / 4) - (dove_width / 2) + dove_width + dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+px = x
+py = y
+x = 0
+y = (piece_length / 4) - (dove_width / 2) + dove_width 
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+# side middle
+px = x
+py = y
+x = 0
+y = (piece_length * 3 / 4) + (dove_width / 2)
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+# left_top dovetail
+px = x
+py = y
+x = 0 - dove_length
+y = (piece_length * 3 / 4) + (dove_width / 2) - dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+px = x
+py = y
+x = 0 - dove_length
+y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width + dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+px = x
+py = y
+x = 0
+y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+# side to top
+px = x
+py = y
+x = 0
+y = piece_length
+sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
+
+# copy and place at opposite side
+doc.getObject('Sketch').addCopy([0,1,2,3,4,5,6,7,8], App.Vector(piece_length, 0, 0), True)
+
+
+
+
+# bottom 
+
+# start drawing piece at origin
+x = 0
+y = (piece_length / 4) - (dove_width / 2)
+sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(y, x, 0)), False)
+
+# left_bottom pocket
+px = x
+py = y
+x = dove_length
+y = (piece_length / 4) - (dove_width / 2)  - dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+px = x
+py = y
+x = dove_length
+y = (piece_length / 4) - (dove_width / 2) + dove_width + dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+px = x
+py = y
+x = 0
+y = (piece_length / 4) - (dove_width / 2) + dove_width 
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+# side middle
+px = x
+py = y
+x = 0
+y = (piece_length * 3 / 4) + (dove_width / 2)
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+# left_top dovetail
+px = x
+py = y
+x = 0 - dove_length
+y = (piece_length * 3 / 4) + (dove_width / 2) - dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+px = x
+py = y
+x = 0 - dove_length
+y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width + dove_side
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+px = x
+py = y
+x = 0
+y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+# side to top
+px = x
+py = y
+x = 0
+y = piece_length
+sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
+
+# copy and place at opposite side
+doc.getObject('Sketch').addCopy([18,19,20,21,22,23,24,25,26], App.Vector(0, piece_length, 0), True)
+
+
 
 
 
