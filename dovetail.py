@@ -144,26 +144,26 @@ sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)),
 px = x
 py = y
 x = 0
-y = (piece_length * 3 / 4) + (dove_width / 2)
+y = (piece_length * 3 / 4) - (dove_width / 2)
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 # left_top dovetail
 px = x
 py = y
 x = 0 - dove_length
-y = (piece_length * 3 / 4) + (dove_width / 2) - dove_side
+y = (piece_length * 3 / 4) - (dove_width / 2) - dove_side
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 px = x
 py = y
 x = 0 - dove_length
-y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width + dove_side
+y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width + dove_side
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 px = x
 py = y
 x = 0
-y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width
+y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 # side to top
@@ -209,26 +209,26 @@ sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)
 px = x
 py = y
 x = 0
-y = (piece_length * 3 / 4) + (dove_width / 2)
+y = (piece_length * 3 / 4) - (dove_width / 2)
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 # left_top dovetail
 px = x
 py = y
 x = 0 - dove_length
-y = (piece_length * 3 / 4) + (dove_width / 2) - dove_side
+y = (piece_length * 3 / 4) - (dove_width / 2) - dove_side
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 px = x
 py = y
 x = 0 - dove_length
-y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width + dove_side
+y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width + dove_side
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 px = x
 py = y
 x = 0
-y = (piece_length * 3 / 4) + (dove_width / 2) + dove_width
+y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 # side to top
