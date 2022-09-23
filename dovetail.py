@@ -436,44 +436,143 @@ def main():
     # is used for the position of the current line
     line_count = 0
 
+    # change dot diameter, nothing else
+    # dot1
+    dot_size = .2          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 6.4  # space between center of characters
+    line_separation = 14   # space between center of lines
     create_template_dot("dot1")
-    print_braille_string("abcdefghijklmnopqrstuvwxyz", line_count, "dot1")
+    print_braille_string("punt twintig", line_count, "dot1")
     line_count = line_count + 1
 
-    # change dot values
-    # These four define the size of the dots in mmm
-    dot_size = 2          # diameter of a dot
-    dot_separation = 8   # space between center of dots
-    char_separation = 10  # space between center of characters
-    line_separation = 20   # space between center of lines
-
-    # re-create dot with different values
+    # dot2
+    dot_size = .3          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 6.4  # space between center of characters
     create_template_dot("dot2")
-    print_braille_string("dit is braille 1 en 2 en 42", line_count, "dot2")
+    print_braille_string("punt dertig", line_count, "dot2")
     line_count = line_count + 1
 
     # dot3
-    dot_size = 3          # diameter of a dot
-    dot_separation = 8   # space between center of dots
-    char_separation = 10  # space between center of characters
-    line_separation = 20   # space between center of lines
+    dot_size = .4          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 6.4  # space between center of characters
     create_template_dot("dot3")
-    print_braille_string("alea jacta est", line_count, "dot3")
+    print_braille_string("punt veertig", line_count, "dot3")
+    line_count = line_count + 1
+
+    # dot4
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 6.4  # space between center of characters
+    create_template_dot("dot4")
+    print_braille_string("punt vijftig", line_count, "dot4")
+    line_count = line_count + 1
+
+    # dot5
+    dot_size = .6          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 6.4  # space between center of characters
+    create_template_dot("dot5")
+    print_braille_string("punt zestig", line_count, "dot5")
+    line_count = line_count + 1
+
+    # dot6
+    dot_size = .7          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 6.4  # space between center of characters
+    create_template_dot("dot6")
+    print_braille_string("punt zeventig", line_count, "dot6")
     line_count = line_count + 1
 
 
-    # dot4
-    dot_size = .3          # diameter of a dot
-    dot_separation = 4   # space between center of dots
-    char_separation = 6  # space between center of characters
-    line_separation = 20   # space between center of lines
-    create_template_dot("dot4")
-    print_braille_string("2 4 8 16 32 64 128 256", line_count, "dot4")
+
+    # alles .5 en afstand aanpassen
+    # dot7
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2     # space between center of dots
+    char_separation = 5    # space between center of characters
+    create_template_dot("dot7")
+    print_braille_string("dichtst bij elkaar", line_count, "dot7")
+    line_count = line_count + 1
+
+    # dot8
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.2   # space between center of dots
+    char_separation = 5.5  # space between center of characters
+    create_template_dot("dot8")
+    print_braille_string("dicht bij elkaar", line_count, "dot8")
+    line_count = line_count + 1
+
+    # dot9
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.4   # space between center of dots
+    char_separation = 6    # space between center of characters
+    create_template_dot("dot9")
+    print_braille_string("net te dicht", line_count, "dot9")
+    line_count = line_count + 1
+
+    # dot10
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.6   # space between center of dots
+    char_separation = 6.5  # space between center of characters
+    create_template_dot("dot10")
+    print_braille_string("net te ver", line_count, "dot10")
+    line_count = line_count + 1
+
+    # dot11
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.8   # space between center of dots
+    char_separation = 7    # space between center of characters
+    create_template_dot("dot11")
+    print_braille_string("verder weg", line_count, "dot11")
+    line_count = line_count + 1
+
+    # dot12
+    dot_size = .5          # diameter of a dot
+    dot_separation = 3   # space between center of dots
+    char_separation = 7.5  # space between center of characters
+    create_template_dot("dot12")
+    print_braille_string("veel te ver", line_count, "dot12")
+    line_count = line_count + 1
+
+
+    # character separation
+    # dot13
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 8    # space between center of characters
+    create_template_dot("dot13")
+    print_braille_string("samen sterk", line_count, "dot13")
+    line_count = line_count + 1
+
+    # dot14
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 10   # space between center of characters
+    create_template_dot("dot14")
+    print_braille_string("kleine afstand", line_count, "dot14")
+    line_count = line_count + 1
+
+    # dot15
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 12   # space between center of characters
+    create_template_dot("dot15")
+    print_braille_string("corona veilig", line_count, "dot15")
+    line_count = line_count + 1
+
+    # dot16
+    dot_size = .5          # diameter of a dot
+    dot_separation = 2.5   # space between center of dots
+    char_separation = 14   # space between center of characters
+    create_template_dot("dot16")
+    print_braille_string("solitair", line_count, "dot16")
+    line_count = line_count + 1
 
 
 main()
-
-
 
 
 doc.recompute()
