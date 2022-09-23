@@ -16,7 +16,6 @@ plate_height = 3.2		# stud_center_spacing * 2 / 5
 plate_width = 7.8		# for 1x1 plate and 1x1 brick
 gap = 0.2			# inbetween two 1x1;  X studs is X * (plate_width + gap) - gap
 				# example: plate_width + gap + plate_width + gap + plate_width
-
 brick_height = 9.6		# stud_center_spacing * 6 / 5  (or plate_height * 3)
 brick_wall  = 0.75		# (stud_center_spacing - stud_diameter) / 2 / 2
 brick_width = 7.8		# = plate_width
@@ -35,16 +34,13 @@ import Sketcher
 doc = FreeCAD.newDocument("Lego brick generated")
 obj = doc.addObject("PartDesign::Body", "Body")
 
-
-
-def make_cube(name, x, y, z):
+def make_prism(name, x, y, z):
     obj = doc.addObject("Part::Box", name)
     obj.Length = x
     obj.Width = y
     obj.Height = z
     doc.recompute()
     return obj
-
 
 def make_stud(name):
     obj = doc.addObject("Part::Cylinder", name)
@@ -53,33 +49,27 @@ def make_stud(name):
     doc.recompute()
     return obj
 
+def calculate_width(y):
+    w = (y * (brick_width + gap)) - gap
+    return w
+
 stud_template = make_stud("stud_template")
 
 
-
 # create a 1x1 brick
-brick1 = make_cube("brick1x1", brick_width, brick_width, brick_height)
+brick1 = make_prism("brick1x1", brick_width, brick_width, brick_height)
 doc.brick1x1.Placement = FreeCAD.Placement(Vector(0, 0, 0), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
-stud1 = make_stud("stud1x1", brick_width, brick_width, brick_height)
+stud1 = make_stud("stud1x1")
 doc.stud1x1.Placement = FreeCAD.Placement(Vector(0, 0, brick_height), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
-
-# create a 2x1 brick
-brick2 = make_cube("brick1x2", brick_width, (brick_width * 2) + gap, brick_height)
-doc.brick1x2.Placement = FreeCAD.Placement(Vector(20, 0, 0), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
-
-# create a 2x2 brick
-brick3 = make_cube("brick2x2", (brick_width * 2) + gap, (brick_width * 2) + gap, brick_height)
-doc.brick2x2.Placement = FreeCAD.Placement(Vector(0, 20, 0), FreeCAD.Rotation(0, 0, 0), Vector(0, 0, 0))
-
 
 
 # create an x by y brick
 x = 2
 y = 6
-length = calculate_length(y)
+length = calculate_width(y)
 width = calculate_width(x)
-prism = create_prism(width, length)
-studs = create_studs(width, length)
+prism = make_prism("prism", width, length, brick_height)
+#studs = create_studs(width, length)
 
 
 
