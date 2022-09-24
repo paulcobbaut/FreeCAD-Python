@@ -20,6 +20,7 @@ import FreeCAD
 from FreeCAD import Base, Vector
 import Part
 import Sketcher
+import Mesh
 
 # FreeCAD document
 doc = FreeCAD.newDocument("Lego brick generated")
@@ -86,6 +87,10 @@ doc.Cut.Base = doc.brick55
 doc.Cut.Tool = doc.hole33
 brick55.ViewObject.hide()
 hole33.ViewObject.hide()
-
 doc.recompute()
+
+__objs__ = []
+__objs__.append(doc.getObject('Cut'))
+Mesh.export(__objs__,u"/home/paul/FreeCAD models/Lego brick generated-Cut1.stl")
+
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
