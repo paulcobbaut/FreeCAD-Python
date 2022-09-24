@@ -4,7 +4,7 @@ The goal is to make nonexisting Lego-compatible pieces for use in 3D printer
 For example a 30x10 studs box with flat bottom, 8 bricks high, studs all over the top side
 """
 # Dimensions used
-stud_radius = 2.4		# documented as 2.4 or 2.5 or 2.47
+stud_radius = 2.47		# documented as 2.4 or 2.5 or 2.47
 stud_center_spacing = 8.0
 stud_height = 1.7		# brick_height / 3 - brick_walls_thickness
 
@@ -56,18 +56,36 @@ def create_studs(name, x, y, z):
             xpos = ((i+1) * stud_center_spacing) - (stud_center_spacing / 2)
             ypos = ((j+1) * stud_center_spacing) - (stud_center_spacing / 2)
             obj.Placement = FreeCAD.Placement(Vector(xpos, ypos, z), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+            compound_list.append(obj)
 
-def create_a_brick(xstuds, ystuds):
+def create_a_brick(brickname, xstuds, ystuds):
     width = calculate_width(xstuds)
     length = calculate_width(ystuds)
     prism = make_prism("prism", width, length, brick_height)
+    compound_list.append(prism)
     studs = create_studs("studs", xstuds, ystuds, brick_height)
+    obj = doc.addObject("Part::Compound", brickname)
+    obj.Links = compound_list
+    return obj
 
-create_a_brick(2, 6)
+def create_a_hole(brickname, xstuds, ystuds):
+    obj = create_a_brick(brickname, xstuds, ystuds)
+    obj.Label = brickname
+    obj.Placement = FreeCAD.Placement(Vector(brick_width + gap, brick_width + gap, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    return obj    
 
 
+global compound_list
+compound_list = []
+brick55 = create_a_brick("brick55", 5, 5)
+compound_list = []
+hole33 = create_a_hole("hole33", 3, 3)
+
+doc.addObject('Part::Cut','Cut')
+doc.Cut.Base = doc.brick55
+doc.Cut.Tool = doc.hole33
+brick55.ViewObject.hide()
+hole33.ViewObject.hide()
 
 doc.recompute()
-
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
-
