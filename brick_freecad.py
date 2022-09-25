@@ -98,5 +98,8 @@ def create_brick_series_with_hole(studsx, studsymax):
         export.append(doc.getObject(brickname))
         Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brickname + ".stl")
 
+# minimal xstuds = 3!
 create_brick_series_with_hole(3,12)
+create_brick_series_with_hole(4,12)
+create_brick_series_with_hole(5,12)
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
