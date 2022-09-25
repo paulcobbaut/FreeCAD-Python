@@ -48,7 +48,7 @@ def make_stud(name):
 stud_template = make_stud("stud_template")
 stud_template.ViewObject.hide()
 
-def create_studs(name, x, y, z):
+def create_studs(name, compound_list, x, y, z):
     for i in range(int(x)):
         for j in range(int(y)):
             obj = doc.addObject('Part::Feature','stud_template')
@@ -59,38 +59,56 @@ def create_studs(name, x, y, z):
             obj.Placement = FreeCAD.Placement(Vector(xpos, ypos, z), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
             compound_list.append(obj)
 
-def create_a_brick(brickname, xstuds, ystuds):
+def create_a_brick(brickname, xstuds, ystuds, offset):
+    compound_list = []
     width = calculate_width(xstuds)
     length = calculate_width(ystuds)
-    prism = make_prism("prism", width, length, brick_height)
+    prism = make_prism("prism", width, length, plate_height)
     compound_list.append(prism)
-    studs = create_studs("studs", xstuds, ystuds, brick_height)
+    studs = create_studs("studs", compound_list, xstuds, ystuds, plate_height)
     obj = doc.addObject("Part::Compound", brickname)
     obj.Links = compound_list
+    obj.Placement = FreeCAD.Placement(Vector((brick_width * offset), 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return obj
 
-def create_a_hole(brickname, xstuds, ystuds):
-    obj = create_a_brick(brickname, xstuds, ystuds)
+def create_a_hole(brickname, xstuds, ystuds, offset):
+    obj = create_a_brick(brickname, xstuds, ystuds, offset)
     obj.Label = brickname
-    obj.Placement = FreeCAD.Placement(Vector(brick_width + gap, brick_width + gap, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    obj.Placement = FreeCAD.Placement(Vector((brick_width * offset) + brick_width + gap, brick_width + gap, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return obj    
 
+def create_brick_with_hole(brickname, studsx, studsy, offset):
+    brick = create_a_brick("brick" + str(studsx) + '_' + str(studsy), studsx, studsy, offset)
+    hole = create_a_hole("hole" + str(studsx) + '_' + str(studsy), studsx - 2, studsy - 2, offset)
+    obj = doc.addObject('Part::Cut', brickname)
+    obj.Base = brick
+    obj.Tool = hole
+    brick.ViewObject.hide()
+    hole.ViewObject.hide()
+    return obj
 
-global compound_list
-compound_list = []
-brick55 = create_a_brick("brick55", 5, 5)
-compound_list = []
-hole33 = create_a_hole("hole33", 3, 3)
+offset = 0	# put the generated pieces at an X distance
 
-doc.addObject('Part::Cut','Cut')
-doc.Cut.Base = doc.brick55
-doc.Cut.Tool = doc.hole33
-brick55.ViewObject.hide()
-hole33.ViewObject.hide()
+brick33 = create_brick_with_hole("threebythree", 3, 3, offset)
+offset = offset + 3 + 1
+brick34 = create_brick_with_hole("threebyfour", 3, 4, offset)
+offset = offset + 3 + 1
+brick35 = create_brick_with_hole("threebyfive", 3, 5, offset)
+offset = offset + 3 + 1
+brick46 = create_brick_with_hole("fourbysix", 4, 6, offset)
+offset = offset + 4 + 1
+brick57 = create_brick_with_hole("fivebyseven", 5, 7, offset)
+offset = offset + 5 + 1
+
 doc.recompute()
 
-__objs__ = []
-__objs__.append(doc.getObject('Cut'))
-Mesh.export(__objs__,u"/home/paul/FreeCAD models/Lego brick generated-Cut1.stl")
+exportlist = []
+exportlist.append(doc.getObject("threebythree"))
+exportlist.append(doc.getObject("threebyfour"))
+exportlist.append(doc.getObject("threebyfive"))
+exportlist.append(doc.getObject("fourbysix"))
+exportlist.append(doc.getObject("fivebyseven"))
+Mesh.export(exportlist,u"/home/paul/FreeCAD models/Bricks generated.stl")
+
 
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
