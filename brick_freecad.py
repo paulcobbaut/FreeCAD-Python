@@ -86,12 +86,12 @@ def create_brick_with_hole(brickname, studsx, studsy, offset):
     brick.ViewObject.hide()
     hole.ViewObject.hide()
     return obj
-
+"""
 offset = 0	# put the generated pieces at an X distance
 
-brick33 = create_brick_with_hole("threebythree", 3, 3, offset)
+brick33 = create_brick_with_hole("brick3x3", 3, 3, offset)
 offset = offset + 3 + 1
-brick34 = create_brick_with_hole("threebyfour", 3, 4, offset)
+brick34 = create_brick_with_hole("brick3x4", 3, 4, offset)
 offset = offset + 3 + 1
 brick35 = create_brick_with_hole("threebyfive", 3, 5, offset)
 offset = offset + 3 + 1
@@ -100,15 +100,26 @@ offset = offset + 4 + 1
 brick57 = create_brick_with_hole("fivebyseven", 5, 7, offset)
 offset = offset + 5 + 1
 
-doc.recompute()
 
 exportlist = []
-exportlist.append(doc.getObject("threebythree"))
-exportlist.append(doc.getObject("threebyfour"))
+exportlist.append(doc.getObject("brick3x3"))
+exportlist.append(doc.getObject("brick3x4"))
 exportlist.append(doc.getObject("threebyfive"))
 exportlist.append(doc.getObject("fourbysix"))
 exportlist.append(doc.getObject("fivebyseven"))
-Mesh.export(exportlist,u"/home/paul/FreeCAD models/Bricks generated.stl")
+"""
 
+def create_brick_series_with_hole(studsx, studsymax):
+    exportlist = []
+    offset = 0
+    for i in range(int(studsx), int(studsymax) + 1):
+        brickname = "brick" + str(studsx) + 'x' + str(i)
+        brick = create_brick_with_hole(brickname, studsx, i, offset)
+        offset = offset + int(studsx) + 1
+        exportlist.append(doc.getObject(brickname))
+    doc.recompute()
+    Mesh.export(exportlist,u"/home/paul/FreeCAD models/Bricks generated.stl")
+
+create_brick_series_with_hole(5,8)
 
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
