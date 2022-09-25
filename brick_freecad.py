@@ -71,15 +71,17 @@ def create_a_brick(brickname, xstuds, ystuds, offset):
     obj.Placement = FreeCAD.Placement(Vector((brick_width * offset), 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return obj
 
-def create_a_hole(brickname, xstuds, ystuds, offset):
+def create_a_hole(brickname, xstuds, ystuds, offset, studs_side):
     obj = create_a_brick(brickname, xstuds, ystuds, offset)
     obj.Label = brickname
-    obj.Placement = FreeCAD.Placement(Vector((brick_width * offset) + brick_width + gap, brick_width + gap, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    x = (brick_width * offset) + studs_side * (brick_width + gap)  # studs_side for correct location of hole, offset for unique x location for all bricks
+    y = studs_side * (brick_width + gap)                           # studs_side for correct location of hole
+    obj.Placement = FreeCAD.Placement(Vector(x, y, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return obj    
 
-def create_brick_with_hole(brickname, studsx, studsy, offset):
+def create_brick_with_hole(brickname, studsx, studsy, offset, studs_side):
     brick = create_a_brick("brick" + str(studsx) + '_' + str(studsy), studsx, studsy, offset)
-    hole = create_a_hole("hole" + str(studsx) + '_' + str(studsy), studsx - 2, studsy - 2, offset)
+    hole = create_a_hole("hole_in" + str(studsx) + '_' + str(studsy), studsx - 2 * studs_side, studsy - 2 * studs_side, offset, studs_side)
     obj = doc.addObject('Part::Cut', brickname)
     obj.Base = brick
     obj.Tool = hole
@@ -87,19 +89,27 @@ def create_brick_with_hole(brickname, studsx, studsy, offset):
     hole.ViewObject.hide()
     return obj
 
-def create_brick_series_with_hole(studsx, studsymax):
+def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
     offset = 0
-    for i in range(int(studsx), int(studsymax) + 1):
-        brickname = "brick" + str(studsx) + 'x' + str(i)
-        brick = create_brick_with_hole(brickname, studsx, i, offset)
-        offset = offset + int(studsx) + 1
+    for i in range(int(studs_x), int(studs_y_max) + 1):
+        brick_name = "brick" + str(studs_x) + 'x' + str(i)
+        brick = create_brick_with_hole(brick_name, studs_x, i, offset, studs_side)
+        offset = offset + int(studs_x) + 1
         doc.recompute()
         export = []
-        export.append(doc.getObject(brickname))
-        Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brickname + ".stl")
+        export.append(doc.getObject(brick_name))
+        Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brick_name + ".stl")
 
-# minimal xstuds = 3!
-create_brick_series_with_hole(3,12)
-create_brick_series_with_hole(4,12)
-create_brick_series_with_hole(5,12)
+
+# create_brick_series_with_hole (studs X, studs Y, side thickness in studs)
+#
+# minimal xstuds = 3!!!
+# studs_y is always greater than or equal to studs_x!!!
+# --> because bricks are always named shortest_side x longest_side
+# --> for example 5x3 does not exist, it is 3x5
+# minimal X studs = 3!!!
+# --> cannot have a hole in a 2x2, 2x3 or 3x2 brick
+create_brick_series_with_hole(3, 12, 1)
+create_brick_series_with_hole(6, 12, 2)
+
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
