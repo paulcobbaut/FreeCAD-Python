@@ -1,5 +1,9 @@
 # FreeCAD-Python
-Python scripts to automate creating objects in FreeCAD 0.20
+Python scripts to automate creating objects in FreeCAD
+
+**brick_freecad.py** generates a series of .stl files of Lego-compatible bricks or plates
+![Screenshot_2022-09-25_12-41-50](https://user-images.githubusercontent.com/524195/192139514-930466b9-991c-489a-8adf-4453e817d915.png)
+
 
 **fc1.py** creates square puzzle pieces with tenons and mortises in FreeCAD 0.20
 
