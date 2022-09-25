@@ -63,9 +63,36 @@ def create_a_brick(brickname, xstuds, ystuds, offset):
     compound_list = []
     width = calculate_width(xstuds)
     length = calculate_width(ystuds)
-    prism = make_prism("prism", width, length, plate_height)
+    prism = make_prism("prism", width, length, brick_height)
     compound_list.append(prism)
-    studs = create_studs("studs", compound_list, xstuds, ystuds, plate_height)
+    studs = create_studs("studs", compound_list, xstuds, ystuds, brick_height)
+    obj = doc.addObject("Part::Compound", brickname)
+    obj.Links = compound_list
+    obj.Placement = FreeCAD.Placement(Vector((brick_width * offset), 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    return obj
+
+def tmp_create_a_brick(brickname, xstuds, ystuds, offset):
+    # first create the block without studs
+    # outer_prism = the brick block completely full
+    # inner_prism = the part that is substracted from outer_prism, thus prism has thin walls and ceiling
+    width = calculate_width(xstuds)
+    length = calculate_width(ystuds)
+    outer_prism = make_prism("outer_prism", width, length, brick_height)
+    inner_prism = make_prism("inner_prism", width - (brick_wall * 2), length - (brick_wall * 2) , brick_height - brick_wall)
+    #outer_prism.Placement = FreeCAD.Placement(Vector((brick_width * offset), 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    inner_prism.Placement = FreeCAD.Placement(Vector(0 + brick_wall, 0 + brick_wall, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    prism = doc.addObject('Part::Cut', "prism")
+    prism.Base = outer_prism
+    prism.Tool = inner_prism
+    outer_prism.ViewObject.hide()
+    inner_prism.ViewObject.hide()
+    # create compound list, the object returned is a one-piece brick
+    compound_list = []
+    # append the block to the compound_list
+    compound_list.append(prism)
+    # create the studs and append each one to the compound_list
+    studs = create_studs("studs", compound_list, xstuds, ystuds, brick_height)
+    # brick is finished, so create a compound object with the name of the brick
     obj = doc.addObject("Part::Compound", brickname)
     obj.Links = compound_list
     obj.Placement = FreeCAD.Placement(Vector((brick_width * offset), 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
@@ -92,7 +119,7 @@ def create_brick_with_hole(brickname, studsx, studsy, offset, studs_side):
 def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
     offset = 0
     for i in range(int(studs_x), int(studs_y_max) + 1):
-        brick_name = "brick" + str(studs_x) + 'x' + str(i)
+        brick_name = "brick_with_hole_" + str(studs_x) + 'x' + str(i) + '_border_' + str(studs_side)
         brick = create_brick_with_hole(brick_name, studs_x, i, offset, studs_side)
         offset = offset + int(studs_x) + 1
         doc.recompute()
@@ -100,6 +127,10 @@ def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
         export.append(doc.getObject(brick_name))
         Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brick_name + ".stl")
 
+tmp_create_a_brick("brick_2x4", 2, 4, 0)
+tmp_create_a_brick("brick_2x4", 2, 6, 3)
+tmp_create_a_brick("brick_2x4", 2, 8, 6)
+doc.recompute()
 
 # create_brick_series_with_hole (studs X, studs Y, side thickness in studs)
 #
@@ -109,7 +140,7 @@ def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
 # --> for example 5x3 does not exist, it is 3x5
 # minimal X studs = 3!!!
 # --> cannot have a hole in a 2x2, 2x3 or 3x2 brick
-create_brick_series_with_hole(3, 12, 1)
-create_brick_series_with_hole(6, 12, 2)
+##create_brick_series_with_hole(3, 8, 1)
+##create_brick_series_with_hole(6, 10, 2)
 
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
