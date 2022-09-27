@@ -3,18 +3,27 @@ brick_FreeCAD.py -- Paul Cobbaut, 2022-09-25
 The goal is to make nonexisting Lego-compatible pieces for use in 3D printer
 The script is able to generate .stl files directly.
 """
-# Dimensions used
-stud_radius_mm = 2.47		# documented as 2.4 or 2.5 or 2.47
-stud_center_spacing_mm = 8.0
-stud_height_mm = 1.7		# brick_height_mm / 3 - brick_wall_thickness_mm
+# Dimensions for studs
+stud_radius_mm		= 2.471
+stud_center_spacing_mm	= 8.000
+stud_height_mm		= 1.700
 
-plate_height_mm = 3.2		# stud_center_spacing_mm * 2 / 5
-plate_width_mm = 7.8		# for 1x1 plate and 1x1 brick
-gap_mm = 0.2			# inbetween two 1x1;  X studs is X * (plate_width_mm + gap_mm) - gap_mm
-				# example: plate_width_mm + gap_mm + plate_width_mm + gap_mm + plate_width_mm
-brick_height_mm = 9.6		# stud_center_spacing_mm * 6 / 5  (or plate_height_mm * 3)
-brick_wall_thickness_mm  = 0.75	# (stud_center_spacing_mm - stud_diameter) / 2 / 2
-brick_width_mm = 7.8		# = plate_width_mm
+# Dimensions for plates
+plate_height_mm		= 3.200
+plate_width_mm		= 7.800		# for 1x1 plate and 1x1 brick
+
+# The gap that is added to the width/lenght for each extra stud
+gap_mm 			= 0.200		# extra thickness needed between each two studs
+
+# Dimensions for bricks
+brick_height_mm		= 9.600		# plate_height_mm * 3
+brick_wall_thickness_mm	= 1.600	
+brick_width_mm		= 7.800		# = plate_width_mm
+
+# Dimensions for bricks: underside standard Lego-compatible brick
+cylinder_radius_outer_mm = 3.226	# 3.256?
+cylinder_radius_inner_mm = 2.370	# 2.400?
+cylinder_height_mm 	= 8.000
 
 import FreeCAD
 from FreeCAD import Base, Vector
@@ -38,6 +47,7 @@ def make_prism(name, x, y, z):
     doc.recompute()
     return obj
 
+# the stud template is always copied
 def make_stud(name):
     obj = doc.addObject("Part::Cylinder", name)
     obj.Radius = stud_radius_mm
@@ -47,6 +57,25 @@ def make_stud(name):
 
 stud_template = make_stud("stud_template")
 stud_template.ViewObject.hide()
+
+# the cylinder template is always copied
+def make_cylinder(name):
+    outer_cylinder = doc.addObject("Part::Cylinder", "outer_cylinder")
+    outer_cylinder.Radius = cylinder_radius_outer_mm
+    outer_cylinder.Height = cylinder_height_mm
+    inner_cylinder = doc.addObject("Part::Cylinder", "inner_cylinder")
+    inner_cylinder.Radius = cylinder_radius_inner_mm
+    inner_cylinder.Height = cylinder_height_mm
+    cylinder = doc.addObject('Part::Cut', name)
+    cylinder.Base = outer_cylinder
+    cylinder.Tool = inner_cylinder
+    outer_cylinder.ViewObject.hide()
+    inner_cylinder.ViewObject.hide()
+    return cylinder
+
+cylinder_template = make_cylinder("cylinder_template")
+cylinder_template.ViewObject.hide()
+
 
 def create_studs(name, compound_list, x, y, z):
     for i in range(int(x)):
@@ -58,7 +87,8 @@ def create_studs(name, compound_list, x, y, z):
             ypos = ((j+1) * stud_center_spacing_mm) - (stud_center_spacing_mm / 2)
             obj.Placement = FreeCAD.Placement(Vector(xpos, ypos, z), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
             compound_list.append(obj)
-"""
+
+
 def create_a_brick(brickname, xstuds, ystuds, offset):
     compound_list = []
     width = calculate_width(xstuds)
@@ -70,7 +100,7 @@ def create_a_brick(brickname, xstuds, ystuds, offset):
     obj.Links = compound_list
     obj.Placement = FreeCAD.Placement(Vector((brick_width_mm * offset), 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return obj
-"""
+
 
 def tmp_create_a_brick(brickname, xstuds, ystuds, offset):
     # first create the block without studs
@@ -92,6 +122,16 @@ def tmp_create_a_brick(brickname, xstuds, ystuds, offset):
     compound_list.append(prism)
     # create the studs and append each one to the compound_list
     studs = create_studs("studs", compound_list, xstuds, ystuds, brick_height_mm)
+    # create the bottom cylinders
+    for j in range(int(xstuds - 1)):
+        for i in range(int(ystuds - 1)):
+            newcyl = doc.addObject('Part::Feature','cylinder_template')
+            newcyl.Shape = doc.cylinder_template.Shape
+            newcyl.Label = 'cylinder_' + str(i)
+            xpos = (brick_width_mm + gap_mm) * (j + 1)
+            ypos = (brick_width_mm + gap_mm) * (i + 1)
+            newcyl.Placement = FreeCAD.Placement(Vector(xpos, ypos, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+            compound_list.append(newcyl)
     # brick is finished, so create a compound object with the name of the brick
     obj = doc.addObject("Part::Compound", brickname)
     obj.Links = compound_list
@@ -127,11 +167,10 @@ def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
         export.append(doc.getObject(brick_name))
         Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brick_name + ".stl")
 
-tmp_create_a_brick("brick_2x3", 2, 3, 0)
-tmp_create_a_brick("brick_2x4", 2, 4, 3)
-tmp_create_a_brick("brick_2x5", 2, 5, 6)
-tmp_create_a_brick("brick_2x6", 2, 6, 9)
-doc.recompute()
+#tmp_create_a_brick("brick_2x3", 2, 3, 0)
+#tmp_create_a_brick("brick_2x4", 3, 4, 3)
+#tmp_create_a_brick("brick_13x25", 13, 25, 0)
+#tmp_create_a_brick("brick_2x6", 2, 6, 9)
 
 # create_brick_series_with_hole (studs X, studs Y, side thickness in studs)
 #
@@ -141,7 +180,9 @@ doc.recompute()
 # --> for example 5x3 does not exist, it is 3x5
 # minimal X studs = 3!!!
 # --> cannot have a hole in a 2x2, 2x3 or 3x2 brick
+# pot = create_brick_with_hole("pot",13, 30, 0, 1)
 #create_brick_series_with_hole(3, 8, 1)
-##create_brick_series_with_hole(6, 10, 2)
+create_brick_series_with_hole(6, 12, 2)
 
+doc.recompute()
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
