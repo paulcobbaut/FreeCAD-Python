@@ -108,7 +108,8 @@ dove_side = 1.732 * dove_length  # other side at 30 degree angle
 # create a sketch with dovetails and pockets that will be padded later
 sketch = doc.getObject('Body').newObject("Sketcher::SketchObject", "Sketch")
 
-
+# the tail and pocket will not fit when using exact math sizes
+tail_fit = 0.2		# reduces tail size a bit
 
 # start drawing piece at origin
 # first part draws left side
@@ -139,26 +140,26 @@ sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)),
 px = x
 py = y
 x = 0
-y = (piece_length * 3 / 4) - (dove_width / 2)
+y = (piece_length * 3 / 4) - (dove_width / 2) + tail_fit
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 # left_top dovetail
 px = x
 py = y
-x = 0 - dove_length
-y = (piece_length * 3 / 4) - (dove_width / 2) - dove_side
+x = 0 - dove_length + tail_fit
+y = (piece_length * 3 / 4) - (dove_width / 2) - dove_side - (2 * tail_fit)
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 px = x
 py = y
-x = 0 - dove_length
-y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width + dove_side
+x = 0 - dove_length + tail_fit
+y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width + dove_side - (2 * tail_fit)
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 px = x
 py = y
 x = 0
-y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width
+y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width - tail_fit
 sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
 
 # side to top
@@ -175,28 +176,29 @@ doc.getObject('Sketch').addCopy([0,1,2,3,4,5,6,7,8], App.Vector(piece_length, 0,
 
 
 # start drawing piece at origin
+tail_fit = 0.5		# reduces tail size a bit == TEST
 # first part draws bottom side
 x = 0
-y = (piece_length / 4) - (dove_width / 2)
+y = (piece_length / 4) - (dove_width / 2) + tail_fit
 sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(y, x, 0)), False)
 
 # bottom_left dovetail
 px = x
 py = y
-x = dove_length
-y = (piece_length / 4) - (dove_width / 2)  - dove_side
+x = dove_length - tail_fit
+y = (piece_length / 4) - (dove_width / 2)  - dove_side - (2 * tail_fit)
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 px = x
 py = y
-x = dove_length
-y = (piece_length / 4) - (dove_width / 2) + dove_width + dove_side
+x = dove_length - tail_fit
+y = (piece_length / 4) - (dove_width / 2) + dove_width + dove_side - (2 * tail_fit)
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 px = x
 py = y
-x = 0
-y = (piece_length / 4) - (dove_width / 2) + dove_width 
+x = 0 
+y = (piece_length / 4) - (dove_width / 2) + dove_width - tail_fit
 sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
 
 # side middle
@@ -255,7 +257,6 @@ Paul Cobbaut, 2022-07-05
 FreeCAD Braille font
 This script parses text and converts it to Braille dots in FreeCAD
 """
-
 
 # position of Braille dots
 """
@@ -354,7 +355,6 @@ dot_size = .5          # diameter of a dot
 dot_separation = 2.5   # space between center of dots
 char_separation = 6.4  # space between center of characters
 line_separation = 32   # space between center of lines
-
 
 # create the template dot that is always copied
 def create_template_dot(dotname):
