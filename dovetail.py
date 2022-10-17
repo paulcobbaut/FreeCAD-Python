@@ -1,6 +1,6 @@
 """
 dovetail.py
-Paul Cobbaut, 2022-09-20
+Paul Cobbaut, 2022-09-20 --> 2022-10-06
 Some FreeCAD scripting
 The goal is to make interlocking dovetail pieces
 When that works the next goal is putting braille and roads on the pieces
@@ -108,140 +108,60 @@ dove_side = 1.732 * dove_length  # other side at 30 degree angle
 # create a sketch with dovetails and pockets that will be padded later
 sketch = doc.getObject('Body').newObject("Sketcher::SketchObject", "Sketch")
 
-# the tail and pocket will not fit when using exact math sizes
-tail_fit = 0.2		# reduces tail size a bit
+### fitting the dovetils in the pockets requires a small fitting gap
+tail_fit = 0.2		# mm (makes tails a teeny bit smaller than the pockets)
 
-# start drawing piece at origin
-# first part draws left side
-x = 0
-y = (piece_length / 4) - (dove_width / 2)
-sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(x, y, 0)), False)
+### points needed for polyline sketch
+# x, y
+co_list = [
+[0,						0						], # left_bottom
+[0,						(piece_length/4) - (dove_width/2)		],
+[dove_length,					(piece_length/4) - dove_width			],
+[dove_length,					(piece_length/4) + dove_width			],
+[0,						(piece_length/4) + (dove_width/2)		],
+[0,						(piece_length*3/4) - (dove_width/2) + tail_fit	],
+[0 - dove_length + tail_fit,	 		(piece_length*3/4) - dove_width + (2*tail_fit)	],
+[0 - dove_length + tail_fit,	 		(piece_length*3/4) + dove_width - (2*tail_fit)	],
+[0,						(piece_length*3/4) + (dove_width/2) - tail_fit	],
+[0,						piece_length					], # left_top
+[(piece_width/4) - (dove_width/2),		piece_length					],
+[(piece_width/4) - dove_width,			piece_length - dove_length			],
+[(piece_width/4) + dove_width,			piece_length - dove_length			],
+[(piece_width/4) + (dove_width/2),		piece_length					],
+[(piece_width*3/4) - (dove_width/2) + tail_fit,	piece_length					],
+[(piece_width*3/4) - dove_width + (2*tail_fit),	piece_length + dove_length - tail_fit		],
+[(piece_width*3/4) + dove_width - (2*tail_fit),	piece_length + dove_length - tail_fit		],
+[(piece_width*3/4) + (dove_width/2) - tail_fit,	piece_length 					],
+[piece_width,					piece_length					], # right_top
+[piece_width,					(piece_length*3/4) + (dove_width/2)		],
+[piece_width - dove_length,			(piece_length*3/4) + dove_width			],
+[piece_width - dove_length,			(piece_length*3/4) - dove_width			],
+[piece_width,					(piece_length*3/4) - (dove_width/2)		],
+[piece_width,					(piece_length/4) + (dove_width/2) - tail_fit	],
+[piece_width + dove_length - tail_fit,		(piece_length/4) + dove_width - (2*tail_fit)	],
+[piece_width + dove_length - tail_fit,		(piece_length/4) - dove_width + (2*tail_fit)	],
+[piece_width,					(piece_length/4) - (dove_width/2) + tail_fit	],
+[piece_width,					0						], # right_bottom
+[(piece_width*3/4) + (dove_width/2),		0						],
+[(piece_width*3/4) + dove_width,		0 + dove_length					],
+[(piece_width*3/4) - dove_width,		0 + dove_length					],
+[(piece_width*3/4) - (dove_width/2),		0						],
+[(piece_width/4) + (dove_width/2) - tail_fit,	0						],
+[(piece_width/4) + dove_width - (2*tail_fit),	0 - dove_length + tail_fit			],
+[(piece_width/4) - dove_width + (2*tail_fit),	0 - dove_length	+ tail_fit			],
+[(piece_width/4) - (dove_width/2) + tail_fit,	0						],
+[0,						0						], # left_bottom (again)
+]
 
-# left_bottom pocket
-px = x
-py = y
-x = dove_length
-y = (piece_length / 4) - (dove_width / 2)  - dove_side
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-px = x
-py = y
-x = dove_length
-y = (piece_length / 4) - (dove_width / 2) + dove_width + dove_side
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-px = x
-py = y
-x = 0
-y = (piece_length / 4) - (dove_width / 2) + dove_width 
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-# side middle
-px = x
-py = y
-x = 0
-y = (piece_length * 3 / 4) - (dove_width / 2) + tail_fit
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-# left_top dovetail
-px = x
-py = y
-x = 0 - dove_length + tail_fit
-y = (piece_length * 3 / 4) - (dove_width / 2) - dove_side - (2 * tail_fit)
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-px = x
-py = y
-x = 0 - dove_length + tail_fit
-y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width + dove_side - (2 * tail_fit)
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-px = x
-py = y
-x = 0
-y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width - tail_fit
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-# side to top
-px = x
-py = y
-x = 0
-y = piece_length
-sketch.addGeometry(Part.LineSegment(App.Vector(px, py, 0), App.Vector(x, y, 0)), False)
-
-
-# copy complete left side and place at opposite side
-doc.getObject('Sketch').addCopy([0,1,2,3,4,5,6,7,8], App.Vector(piece_length, 0, 0), True)
-
-
-
-# start drawing piece at origin
-tail_fit = 0.5		# reduces tail size a bit == TEST
-# first part draws bottom side
-x = 0
-y = (piece_length / 4) - (dove_width / 2) + tail_fit
-sketch.addGeometry(Part.LineSegment(App.Vector(0, 0, 0), App.Vector(y, x, 0)), False)
-
-# bottom_left dovetail
-px = x
-py = y
-x = dove_length - tail_fit
-y = (piece_length / 4) - (dove_width / 2)  - dove_side - (2 * tail_fit)
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-px = x
-py = y
-x = dove_length - tail_fit
-y = (piece_length / 4) - (dove_width / 2) + dove_width + dove_side - (2 * tail_fit)
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-px = x
-py = y
-x = 0 
-y = (piece_length / 4) - (dove_width / 2) + dove_width - tail_fit
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-# side middle
-px = x
-py = y
-x = 0
-y = (piece_length * 3 / 4) - (dove_width / 2)
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-# bottom_right pocket
-px = x
-py = y
-x = 0 - dove_length
-y = (piece_length * 3 / 4) - (dove_width / 2) - dove_side
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-px = x
-py = y
-x = 0 - dove_length
-y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width + dove_side
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-px = x
-py = y
-x = 0
-y = (piece_length * 3 / 4) - (dove_width / 2) + dove_width
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-# side to far right
-px = x
-py = y
-x = 0
-y = piece_length
-sketch.addGeometry(Part.LineSegment(App.Vector(py, -px, 0), App.Vector(y, -x, 0)), False)
-
-# copy and place at opposite (top) side
-doc.getObject('Sketch').addCopy([18,19,20,21,22,23,24,25,26], App.Vector(0, piece_length, 0), True)
+# create sketch using the coordinates in co_list
+for i in range(len(co_list) - 1):
+   sketch.addGeometry(Part.LineSegment(App.Vector(co_list[i][0], co_list[i][1], 0), App.Vector(co_list[i+1][0], co_list[i+1][1], 0)), False)
 
 
 # pad this sketch
 pad = doc.getObject('Body').newObject("PartDesign::Pad", "Pad")
 pad.Profile = doc.getObject("Sketch")
-pad.Length = 2
+pad.Length = 1.5
 
 #
 # we now have an empty piece with dovetails and pockets that fits with itself
@@ -251,19 +171,10 @@ pad.Length = 2
 
 
 
-"""
-braille.py
-Paul Cobbaut, 2022-07-05
-FreeCAD Braille font
-This script parses text and converts it to Braille dots in FreeCAD
-"""
-
-# position of Braille dots
-"""
-14
-25
-36
-"""
+##braille.py
+##Paul Cobbaut, 2022-07-05
+##FreeCAD Braille font
+##This script parses text and converts it to Braille dots in FreeCAD
 
 
 # Braille alphabet
@@ -419,13 +330,11 @@ def print_braille_string(string, line_count, dotname):
             if str(i) in braille[letter]:
                 obj = place_a_dot(i, char_count, line_count, dotname)
                 compound_list.append(obj)
-    line_name = "line_" + str(line_count)
+    line_name = "line_" + str(line_count) + string
     obj = doc.addObject("Part::Compound",line_name)
     obj.Links = compound_list
     doc.recompute()	# This seems needed, otherwise nothing appears in FreeCAD
 
-
-# program starts here
 def main():
     global dot_size
     global dot_separation
@@ -435,147 +344,20 @@ def main():
     # line_count keeps track of the n-th line
     # is used for the position of the current line
     line_count = 0
-
-    # change dot diameter, nothing else
-    # dot1
-    dot_size = .2          # diameter of a dot
+    dot_size = .9          # diameter of a dot
     dot_separation = 2.5   # space between center of dots
     char_separation = 6.4  # space between center of characters
-    line_separation = 14   # space between center of lines
-    create_template_dot("dot1")
-    print_braille_string("punt twintig", line_count, "dot1")
+
+    create_template_dot("dot")
+    print_braille_string("franse", line_count, "dot")
     line_count = line_count + 1
-
-    # dot2
-    dot_size = .3          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 6.4  # space between center of characters
-    create_template_dot("dot2")
-    print_braille_string("punt dertig", line_count, "dot2")
-    line_count = line_count + 1
-
-    # dot3
-    dot_size = .4          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 6.4  # space between center of characters
-    create_template_dot("dot3")
-    print_braille_string("punt veertig", line_count, "dot3")
-    line_count = line_count + 1
-
-    # dot4
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 6.4  # space between center of characters
-    create_template_dot("dot4")
-    print_braille_string("punt vijftig", line_count, "dot4")
-    line_count = line_count + 1
-
-    # dot5
-    dot_size = .6          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 6.4  # space between center of characters
-    create_template_dot("dot5")
-    print_braille_string("punt zestig", line_count, "dot5")
-    line_count = line_count + 1
-
-    # dot6
-    dot_size = .7          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 6.4  # space between center of characters
-    create_template_dot("dot6")
-    print_braille_string("punt zeventig", line_count, "dot6")
-    line_count = line_count + 1
+    print_braille_string("plaats", line_count, "dot")
 
 
-
-    # alles .5 en afstand aanpassen
-    # dot7
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2     # space between center of dots
-    char_separation = 5    # space between center of characters
-    create_template_dot("dot7")
-    print_braille_string("dichtst bij elkaar", line_count, "dot7")
-    line_count = line_count + 1
-
-    # dot8
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.2   # space between center of dots
-    char_separation = 5.5  # space between center of characters
-    create_template_dot("dot8")
-    print_braille_string("dicht bij elkaar", line_count, "dot8")
-    line_count = line_count + 1
-
-    # dot9
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.4   # space between center of dots
-    char_separation = 6    # space between center of characters
-    create_template_dot("dot9")
-    print_braille_string("net te dicht", line_count, "dot9")
-    line_count = line_count + 1
-
-    # dot10
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.6   # space between center of dots
-    char_separation = 6.5  # space between center of characters
-    create_template_dot("dot10")
-    print_braille_string("net te ver", line_count, "dot10")
-    line_count = line_count + 1
-
-    # dot11
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.8   # space between center of dots
-    char_separation = 7    # space between center of characters
-    create_template_dot("dot11")
-    print_braille_string("verder weg", line_count, "dot11")
-    line_count = line_count + 1
-
-    # dot12
-    dot_size = .5          # diameter of a dot
-    dot_separation = 3   # space between center of dots
-    char_separation = 7.5  # space between center of characters
-    create_template_dot("dot12")
-    print_braille_string("veel te ver", line_count, "dot12")
-    line_count = line_count + 1
-
-
-    # character separation
-    # dot13
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 8    # space between center of characters
-    create_template_dot("dot13")
-    print_braille_string("samen sterk", line_count, "dot13")
-    line_count = line_count + 1
-
-    # dot14
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 10   # space between center of characters
-    create_template_dot("dot14")
-    print_braille_string("kleine afstand", line_count, "dot14")
-    line_count = line_count + 1
-
-    # dot15
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 12   # space between center of characters
-    create_template_dot("dot15")
-    print_braille_string("corona veilig", line_count, "dot15")
-    line_count = line_count + 1
-
-    # dot16
-    dot_size = .5          # diameter of a dot
-    dot_separation = 2.5   # space between center of dots
-    char_separation = 14   # space between center of characters
-    create_template_dot("dot16")
-    print_braille_string("solitair", line_count, "dot16")
-    line_count = line_count + 1
 
 
 main()
 
-
 doc.recompute()
 
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
-
