@@ -2,6 +2,7 @@
 brick_FreeCAD.py -- Paul Cobbaut, 2022-09-25
 The goal is to make nonexisting Lego-compatible pieces for use in 3D printer
 The script is able to generate .stl files directly.
+currently abandoned...
 """
 # Dimensions for studs
 stud_radius_mm		= 2.471
@@ -89,7 +90,7 @@ def create_studs(name, compound_list, x, y, z):
             compound_list.append(obj)
 
 
-def create_a_brick(brickname, xstuds, ystuds, offset):
+def create_a_flat_bottom_brick(brickname, xstuds, ystuds, offset):
     compound_list = []
     width = calculate_width(xstuds)
     length = calculate_width(ystuds)
@@ -102,7 +103,7 @@ def create_a_brick(brickname, xstuds, ystuds, offset):
     return obj
 
 
-def tmp_create_a_brick(brickname, xstuds, ystuds, offset):
+def create_a_brick(brickname, xstuds, ystuds, offset):
     # first create the block without studs
     # outer_prism = the brick block completely full
     # inner_prism = the part that is substracted from outer_prism, thus prism has thin walls and ceiling
@@ -139,7 +140,7 @@ def tmp_create_a_brick(brickname, xstuds, ystuds, offset):
     return obj
 
 def create_a_hole(brickname, xstuds, ystuds, offset, studs_side):
-    obj = create_a_brick(brickname, xstuds, ystuds, offset)
+    obj = create_a_flat_bottom_brick(brickname, xstuds, ystuds, offset)
     obj.Label = brickname
     x = (brick_width_mm * offset) + studs_side * (brick_width_mm + gap_mm)  # studs_side for correct location of hole, offset for unique x location for all bricks
     y = studs_side * (brick_width_mm + gap_mm)                           # studs_side for correct location of hole
@@ -156,21 +157,67 @@ def create_brick_with_hole(brickname, studsx, studsy, offset, studs_side):
     hole.ViewObject.hide()
     return obj
 
-def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
+def create_brick_series(studs_x, studs_y_max):
     offset = 0
     for i in range(int(studs_x), int(studs_y_max) + 1):
-        brick_name = "brick_with_hole_" + str(studs_x) + 'x' + str(i) + '_border_' + str(studs_side)
-        brick = create_brick_with_hole(brick_name, studs_x, i, offset, studs_side)
+        brick_name = "brick_" + str(studs_x) + 'x' + str(i)
+        brick = create_a_brick(brick_name, studs_x, i, offset)
         offset = offset + int(studs_x) + 1
         doc.recompute()
         export = []
         export.append(doc.getObject(brick_name))
         Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brick_name + ".stl")
 
-#tmp_create_a_brick("brick_2x3", 2, 3, 0)
-#tmp_create_a_brick("brick_2x4", 3, 4, 3)
-#tmp_create_a_brick("brick_13x25", 13, 25, 0)
-#tmp_create_a_brick("brick_2x6", 2, 6, 9)
+def create_wall(studs_x, studs_y, studs_side, offset):
+    width = calculate_width(studs_x)
+    length = calculate_width(studs_y)
+    outer_prism = make_prism("outer_prism", width + (brick_wall_thickness_mm * 2), length + (brick_wall_thickness_mm * 2) , brick_height_mm - brick_wall_thickness_mm)
+    inner_prism = make_prism("inner_prism", width, length, brick_height_mm - brick_wall_thickness_mm)
+    inner_prism.Placement = FreeCAD.Placement(Vector(brick_wall_thickness_mm, brick_wall_thickness_mm, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    wall = doc.addObject('Part::Cut', "wall")
+    wall.Base = outer_prism
+    wall.Tool = inner_prism
+    outer_prism.ViewObject.hide()
+    inner_prism.ViewObject.hide()
+    wall.Placement = FreeCAD.Placement(Vector((offset * brick_width_mm) + (stud_center_spacing_mm * studs_side) - brick_wall_thickness_mm, stud_center_spacing_mm * studs_side - brick_wall_thickness_mm, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    return wall
+
+
+def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
+    offset = 0
+    for i in range(int(studs_x), int(studs_y_max) + 1):
+        brick_name = "brick_with_hole_" + str(studs_x) + 'x' + str(i) + '_border_' + str(studs_side)
+        brick = create_brick_with_hole(brick_name, studs_x, i, offset, studs_side)
+        wall_name = "wall_" + str(studs_x) + 'x' + str(i)
+        wall = create_wall(studs_x - (2*studs_side), i - (2*studs_side), studs_side, offset)
+        # cut with wall to remove remnant cylinders
+        objcut = doc.addObject('Part::Cut', "objcut")
+        objcut.Base = brick
+        objcut.Tool = wall
+        wall.ViewObject.hide()
+        brick.ViewObject.hide()
+        # union with wall
+        objfuse = doc.addObject('Part::Fuse', "objfuse")
+        objfuse.Base = objcut
+        objfuse.Tool = wall
+        objcut.ViewObject.hide()
+        offset = offset + int(studs_x) + 1
+        doc.recompute()
+        export = []
+        export.append(doc.getObject("objfuse"))
+        Mesh.export(export, u"/home/paul/FreeCAD models/brick_python/" + brick_name + ".stl")
+
+### Example: to create single bricks
+#create_a_brick("brick_2x3", 2, 3, 0)
+#create_a_brick("brick_2x4", 3, 4, 3)
+#create_a_brick("brick_2x6", 2, 6, 7)
+#create_a_brick("brick_13x30", 13, 30, 10)
+
+### Example: to create a series of bricks
+### Make sure max_length is always higher than width
+### a 4x2 brick does not exist, it is a 3x4!
+### create_brick_series(width, max_length)
+#create_brick_series(5, 42)
 
 # create_brick_series_with_hole (studs X, studs Y, side thickness in studs)
 #
@@ -180,9 +227,8 @@ def create_brick_series_with_hole(studs_x, studs_y_max, studs_side):
 # --> for example 5x3 does not exist, it is 3x5
 # minimal X studs = 3!!!
 # --> cannot have a hole in a 2x2, 2x3 or 3x2 brick
-# pot = create_brick_with_hole("pot",13, 30, 0, 1)
-#create_brick_series_with_hole(3, 8, 1)
-create_brick_series_with_hole(6, 12, 2)
+create_brick_series_with_hole(8, 12, 2)
+#create_brick_series_with_hole(6, 12, 2)
 
 doc.recompute()
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
