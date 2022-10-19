@@ -37,9 +37,9 @@ obj = doc.addObject("PartDesign::Body", "Body")
 
 
 """
-piece_length = 180               # X-coordinate in FreeCAD
-piece_width = piece_length       # Y-coordinate in FreeCAD
-piece_height = 2                 # Z-coordinate in FreeCAD
+piece_length = 190               # X-coordinate in FreeCAD
+piece_width = 230       # Y-coordinate in FreeCAD
+piece_height = 1.5                 # Z-coordinate in FreeCAD
 #piece_separation = piece_length / 5
 #piece_separation = 0
 
@@ -161,7 +161,7 @@ for i in range(len(co_list) - 1):
 # pad this sketch
 pad = doc.getObject('Body').newObject("PartDesign::Pad", "Pad")
 pad.Profile = doc.getObject("Sketch")
-pad.Length = 1.5
+pad.Length = piece_height
 
 #
 # we now have an empty piece with dovetails and pockets that fits with itself
