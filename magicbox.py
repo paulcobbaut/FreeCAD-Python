@@ -48,8 +48,6 @@ def create_cube(length, width, height, name):
     return obj
 
 
-
-
 def create_box_using_two_cubes():
     '''
     Create a cube, create a smaller cube inside, substract small cube form big one
@@ -67,28 +65,55 @@ def create_box_using_two_cubes():
     outer_lid.Placement = FreeCAD.Placement(Vector(offset, 0, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     inner_lid.Placement = FreeCAD.Placement(Vector(offset + wall_width, wall_width, top_width ), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
 
-    # fillet (round the edges)
+    # fillet the box (round the edges)
     edges = []
     i = 1
     for edge in doc.outer_box.Shape.Edges:
-        if (edge.Length) == (box_inner_height + bottom_width):
-            edges.append((i,1.00,1.00))
+        edges.append((i,1.00,1.00))
         i = i + 1
     outer_box_fil = doc.addObject("Part::Fillet", 'outer_box_fil')
     outer_box_fil.Base = doc.outer_box
     outer_box_fil.Edges = edges
 
+    edges = []
+    i = 1
+    for edge in doc.inner_box.Shape.Edges:
+        if (edge.Length) == (box_inner_height):
+            edges.append((i,1.00,1.00))
+        i = i + 1
+    inner_box_fil = doc.addObject("Part::Fillet", 'inner_box_fil')
+    inner_box_fil.Base = doc.inner_box
+    inner_box_fil.Edges = edges
 
+    # fillet the lid (round the edges)
+    edges = []
+    i = 1
+    for edge in doc.outer_lid.Shape.Edges:
+        edges.append((i,1.00,1.00))
+        i = i + 1
+    outer_lid_fil = doc.addObject("Part::Fillet", 'outer_lid_fil')
+    outer_lid_fil.Base = doc.outer_lid
+    outer_lid_fil.Edges = edges
+
+    edges = []
+    i = 1
+    for edge in doc.inner_lid.Shape.Edges:
+        if (edge.Length) == (lid_inner_height):
+            edges.append((i,1.00,1.00))
+        i = i + 1
+    inner_lid_fil = doc.addObject("Part::Fillet", 'inner_lid_fil')
+    inner_lid_fil.Base = doc.inner_lid
+    inner_lid_fil.Edges = edges
 
     # substract the inners from the outers
     mtgbox = doc.addObject('Part::Cut', 'mtgbox')
     mtgbox.Base = outer_box_fil
-    mtgbox.Tool = inner_box
+    mtgbox.Tool = inner_box_fil
     outer_box.ViewObject.hide()
     inner_box.ViewObject.hide()
     mtglid = doc.addObject('Part::Cut', 'mtglid')
-    mtglid.Base = outer_lid
-    mtglid.Tool = inner_lid
+    mtglid.Base = outer_lid_fil
+    mtglid.Tool = inner_lid_fil
     outer_lid.ViewObject.hide()
     inner_lid.ViewObject.hide()
 
