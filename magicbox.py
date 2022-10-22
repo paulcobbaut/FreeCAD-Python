@@ -35,9 +35,9 @@ offset	= box_inner_length + 2*wall_width + 10	# position the lid next to the box
 
 
 # hexagon size
-hex_radius_mm	= 2
+hex_radius_mm	= 4
 hex_cevian_mm	= 0.866 * hex_radius_mm
-gap_mm		= hex_radius_mm * 2
+gap_mm		= hex_radius_mm - 1
 
 
 def create_cube(length, width, height, name):
@@ -119,17 +119,12 @@ def create_box_using_two_cubes():
 
 
 
-create_box_using_two_cubes()
-
-doc.recompute()
-FreeCADGui.ActiveDocument.ActiveView.fitAll()
-
-
-"""
-# create a sketch 
-sketch = doc.getObject('Body').newObject("Sketcher::SketchObject", "Sketch")
-
 def create_hexagon_grid(x_mm, y_mm):
+    XZ = doc.getObject('Body').newObject("Sketcher::SketchObject", "XZ")
+    XZ.Support = (doc.getObject('XZ_Plane'),[''])
+    XZ.MapMode = 'FlatFace'
+    XZ.Label = 'XZ'
+    #XZ.MapMode = 'ObjectXZ'
     x_space_mm = 2 * hex_cevian_mm + gap_mm  # space needed by a hex and its empty space in the X-axis
     y_space_mm = 1.5 * hex_radius_mm + gap_mm  # space needed by a hex and its empty space in the X-axis	
     x_count = math.floor(x_mm / x_space_mm) - 1
@@ -141,12 +136,18 @@ def create_hexagon_grid(x_mm, y_mm):
             if (j % 2) == 0:
                 o_x = i * x_space_mm
                 r_x = i * x_space_mm + hex_cevian_mm
-                ProfileLib.RegularPolygon.makeRegularPolygon(doc.getObject('Sketch'),6,App.Vector(o_x, o_y, 0),App.Vector(r_x, r_y, 0),False)
+                ProfileLib.RegularPolygon.makeRegularPolygon(doc.getObject('XZ'),6,App.Vector(o_x, o_y, 0),App.Vector(r_x, r_y, 0),False)
             else:
                 o_x = i * x_space_mm + x_space_mm/2
                 r_x = i * x_space_mm + hex_cevian_mm + x_space_mm/2
                 if (i < (x_count-1)):
-                    ProfileLib.RegularPolygon.makeRegularPolygon(doc.getObject('Sketch'),6,App.Vector(o_x, o_y, 0),App.Vector(r_x, r_y, 0),False)
+                    ProfileLib.RegularPolygon.makeRegularPolygon(doc.getObject('XZ'),6,App.Vector(o_x, o_y, 0),App.Vector(r_x, r_y,0),False)
     
-#create_hexagon_grid(60, 75)
-"""
+    
+
+create_box_using_two_cubes()
+#create_hexagon_grid(box_inner_height *.95, box_inner_width * .95)
+create_hexagon_grid(box_inner_length * .95, box_inner_height * .95)
+
+doc.recompute()
+FreeCADGui.ActiveDocument.ActiveView.fitAll()
