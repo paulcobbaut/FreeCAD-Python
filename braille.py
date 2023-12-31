@@ -108,7 +108,8 @@ braille = {
   "8" : "125",
   "9" : "24",
   "0" : "245",
-  " " : ""
+  " " : "",
+  "-" : "36"
 }
 
 
@@ -187,14 +188,15 @@ def main():
     # is used for the position of the current line
     line_count = 0
 
-    print_braille_string("abcdefghijklmnopqrstuvwxyz  1234567890", line_count)
+    #print_braille_string("abcdefghijklmnopqrstuvwxyz", line_count)
+    #line_count = line_count + 1
+    #print_braille_string("abcdefghijklmnopqrstuvwxyz", line_count)
+    #line_count = line_count + 1
+    print_braille_string("-1  sport", line_count)
     line_count = line_count + 1
-    print_braille_string("dit is braille 1 en 2 en 42", line_count)
+    print_braille_string("vuil atelier", line_count)
     line_count = line_count + 1
-    print_braille_string("alea jacta est", line_count)
-    line_count = line_count + 1
-    print_braille_string("2 4 8 16 32 64 128 256", line_count)
-
+   
 
 main()
 
