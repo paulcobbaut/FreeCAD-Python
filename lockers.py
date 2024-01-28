@@ -9,7 +9,7 @@ disc_height_mm = 2
 hole_radius_mm = 2
 
 # Numbers
-lockers = 12 # the number of lockers
+lockers = 23 # the number of lockers
 separation_mm = 50 # mm_between_centers_in_FreeCAD_GUI
 
 # The directory to export the .stl files to
@@ -148,14 +148,6 @@ def create_halves():
 
 """
 def create_mesh_and_export(string_text, compound_list):
-    obj = doc.addObject("Part::Compound", "CompoundAll")
-    obj.Links = compound_list
-    doc.recompute()
-    # emboss the text
-    embossed = doc.addObject('Part::Cut', "embossed")
-    embossed.Base = obj
-    embossed.Tool = emboss
-    doc.recompute()
     # create mesh from shape (compound)
     mesh = doc.addObject("Mesh::Feature","Mesh-" + string_text)
     part = doc.getObject("embossed")
@@ -172,12 +164,15 @@ def create_mesh_and_export(string_text, compound_list):
 
 def create_strings():
     # hardcoded values...
-    font_size = 8
-    font_offset = 10
+    font_size = 10
+    font_offset = 7
     # create a shapestring
     for i in range(int(lockers)):
         newstring=Draft.make_shapestring(String=str(i+1), FontFile=font_file, Size=font_size, Tracking=0.0)
-        xpos = (i+1) * separation_mm
+        if (i<9):
+            xpos = (i+1) * separation_mm
+        else:
+            xpos = (i+1) * separation_mm - 15
         ypos = separation_mm - font_offset
         zpos = disc_height_mm/2
         newstring.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
