@@ -110,13 +110,13 @@ def create_wmstring(text):
     wmstring.Support=None
     wmstring.Label=text + '_string'
     Draft.autogroup(wmstring)
-    # pad the shapestring
+    # extrude the shapestring
     emboss = doc.addObject('Part::Extrusion',text + '_emboss')
     f = doc.getObject(text + '_emboss')
     f.Base = wmstring
     f.DirMode = "Normal"
     f.DirLink = None
-    f.LengthFwd = 0.40
+    f.LengthFwd = 0.50
     f.LengthRev = 0
     f.Solid = False
     f.Reversed = False
@@ -130,45 +130,24 @@ def create_wmstring(text):
 
 
 def create_halves():
+    # hardcoded values for the numbers on tophalf
+    font_size = 10
+    font_offset = 7
     # copy the half template for each locker, twice (both halves)
     for i in range(int(lockers)):
+        # copy tophalf template
         tophalf = doc.addObject('Part::Feature','tophalf')
         tophalf.Shape = doc.tophalf_template.Shape
         tophalf.Label = "tophalf_" + str(i+1) 
+        # position tophalf copy in FreeCAD GUI
         xpos = (i+1) * separation_mm
         ypos = separation_mm
         tophalf.Placement = FreeCAD.Placement(Vector(xpos, ypos, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-        bothalf = doc.addObject('Part::Feature','bothalf')
-        bothalf.Shape = doc.bothalf_template.Shape
-        bothalf.Label = "bothalf_" + str(i+1) 
-        xpos = (i+1) * separation_mm
-        ypos = - separation_mm
-        bothalf.Placement = FreeCAD.Placement(Vector(xpos, ypos, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-    return
-
-"""
-def create_mesh_and_export(string_text, compound_list):
-    # create mesh from shape (compound)
-    mesh = doc.addObject("Mesh::Feature","Mesh-" + string_text)
-    part = doc.getObject("embossed")
-    shape = Part.getShape(part,"")
-    mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
-    mesh.Label = 'Mesh-' + string_text
-    # upload .stl file
-    export = []
-    export.append(mesh)
-    Mesh.export(export, export_directory + string_text + ".stl")
-    #return obj
-"""
-
-
-def create_strings():
-    # hardcoded values...
-    font_size = 10
-    font_offset = 7
-    # create a shapestring
-    for i in range(int(lockers)):
+        # create a shapestring
+        sname = 'string_' + str(i+1)              # name of the shapestring
+        ename = 'string_' + str(i+1) + '_extrude' # name of the extrude
         newstring=Draft.make_shapestring(String=str(i+1), FontFile=font_file, Size=font_size, Tracking=0.0)
+        # position the shapestring (shift double digit numbers to the left)
         if (i<9):
             xpos = (i+1) * separation_mm
         else:
@@ -176,8 +155,39 @@ def create_strings():
         ypos = separation_mm - font_offset
         zpos = disc_height_mm/2
         newstring.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-        newstring.Support=None
+        newstring.Support = None
+        newstring.Label = sname
         Draft.autogroup(newstring)
+        # extrude the shapestring
+        newextrude = doc.addObject('Part::Extrusion',ename)
+        f = doc.getObject(ename)
+        f.Base = newstring
+        f.DirMode = "Normal"
+        f.DirLink = None
+        f.LengthFwd = 1
+        f.LengthRev = 0
+        f.Solid = False
+        f.Reversed = False
+        f.Symmetric = False
+        f.TaperAngle = 0
+        f.TaperAngleRev = 0
+        f.Label = ename
+        # compund extrusion with tophalf
+        tmp_compound = []
+        tmp_compound.append(tophalf)
+        tmp_compound.append(f)
+        obj = doc.addObject("Part::Compound", 'compound_' + str(i+1))
+        obj.Links = tmp_compound
+        obj.Label = 'compound_' + str(i+1)
+
+        # copy bottomhalf template
+        bothalf = doc.addObject('Part::Feature','bothalf')
+        bothalf.Shape = doc.bothalf_template.Shape
+        bothalf.Label = "bothalf_" + str(i+1) 
+        # position bottomhalf copy in FreeCAD GUI
+        xpos = (i+1) * separation_mm
+        ypos = - separation_mm
+        bothalf.Placement = FreeCAD.Placement(Vector(xpos, ypos, 0), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return
 
 
@@ -185,13 +195,11 @@ def create_strings():
 # Start #
 #########
 
-# create a FreeCAD document and Part Design body
-doc                 = FreeCAD.newDocument("Blindenlockers generated")
-#body                = doc.addObject("PartDesign::Body", "Body")
+# create a FreeCAD document 
+doc               = FreeCAD.newDocument("Blindenlockers generated")
 tophalf_template  = make_tophalf_template()
 bothalf_template  = make_bothalf_template()
 create_halves()
-create_strings()
 
 ##doc.removeObject("loft")
 # show in GUI
