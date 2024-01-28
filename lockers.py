@@ -167,7 +167,7 @@ def create_halves():
         f.TaperAngle = 0
         f.TaperAngleRev = 0
         f.Label = ename
-        # compund extrusion with tophalf
+        # compound extrusion with tophalf
         tmp_compound = []
         tmp_compound.append(tophalf)
         tmp_compound.append(f)
@@ -175,9 +175,14 @@ def create_halves():
         obj.Links = tmp_compound
         obj.Label = 'topcompound_' + str(i+1)
         doc.recompute()
+        # refine the compound
+        refobj = doc.addObject('Part::Refine','toprefined_' + str(i+1))
+        refobj.Source = obj
+        refobj.Label = 'toprefined_' + str(i+1)
+        doc.recompute()
         # create mesh from compound
         mesh = doc.addObject("Mesh::Feature","Mesh")
-        part = doc.getObject("topcompound_"+str(i+1))
+        part = doc.getObject("toprefined_"+str(i+1))
         shape = Part.getShape(part,"")
         mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
         mesh.Label = "topmesh_"+str(i+1)
