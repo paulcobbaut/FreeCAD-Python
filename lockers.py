@@ -9,7 +9,7 @@ disc_height_mm = 2
 hole_radius_mm = 2
 
 # Numbers
-lockers = 23 # the number of lockers
+lockers = 38 # the number of lockers
 separation_mm = 50 # mm_between_centers_in_FreeCAD_GUI
 
 # The directory to export the .stl files to
@@ -102,10 +102,6 @@ def create_wmstring(text):
     font_size = 1.5
     # create string containing watermark
     wmstring=Draft.make_shapestring(String=text, FontFile=font_file, Size=font_size, Tracking=0.0)
-    #xpos = 0
-    #ypos = 0
-    #zpos = disc_height_mm/2
-    #wmstring.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     wmstring.Support=None
     wmstring.Label=text + '_string'
     Draft.autogroup(wmstring)
@@ -178,6 +174,17 @@ def create_halves():
         obj = doc.addObject("Part::Compound", 'topcompound_' + str(i+1))
         obj.Links = tmp_compound
         obj.Label = 'topcompound_' + str(i+1)
+        doc.recompute()
+        # create mesh from compound
+        mesh = doc.addObject("Mesh::Feature","Mesh")
+        part = doc.getObject("topcompound_"+str(i+1))
+        shape = Part.getShape(part,"")
+        mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
+        mesh.Label = "topmesh_"+str(i+1)
+        # upload .stl file
+        export = []
+        export.append(mesh)
+        Mesh.export(export, export_directory + "top_" + str(i+1) + ".stl")
         # copy bottomhalf template
         bothalf = doc.addObject('Part::Feature','bothalf')
         bothalf.Shape = doc.bothalf_template.Shape
@@ -196,7 +203,24 @@ def create_halves():
         ypos = - 5 - separation_mm
         zpos = disc_height_mm/2
         braille_string.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-    doc.recompute()
+        # compound braillestring with bothalf
+        tmp_compound = []
+        tmp_compound.append(bothalf)
+        tmp_compound.append(braille_string)
+        obj = doc.addObject("Part::Compound", 'botcompound_' + str(i+1))
+        obj.Links = tmp_compound
+        obj.Label = 'botcompound_' + str(i+1)
+        doc.recompute()
+        # create mesh from compound
+        mesh = doc.addObject("Mesh::Feature","Mesh")
+        part = doc.getObject("botcompound_"+str(i+1))
+        shape = Part.getShape(part,"")
+        mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
+        mesh.Label = "botmesh_"+str(i+1)
+        # upload .stl file
+        export = []
+        export.append(mesh)
+        Mesh.export(export, export_directory + "bottom_" + str(i+1) + ".stl")
     return
 
 
@@ -373,7 +397,6 @@ tophalf_template  = make_tophalf_template()
 bothalf_template  = make_bothalf_template()
 create_template_dot()
 create_halves()
-print_braille_string("23", 0)
 
 ##doc.removeObject("loft")
 # show in GUI
