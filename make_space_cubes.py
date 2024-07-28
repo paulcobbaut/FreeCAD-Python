@@ -10,7 +10,8 @@ import Mesh
 import random
 
 size      = 6                                                                         # cube size
-numpieces = (size * 2) + 2
+numpieces = (size * 3) + 4
+maxsize   = 10 # max amount of units in one piece
 full      = [[[1 for k in range(size)] for j in range(size)] for i in range(size)]    # full cube
 empty     = [[[0 for k in range(size)] for j in range(size)] for i in range(size)]    # empty cube
 pieces    = {}                                                                        # dict for all pieces
@@ -56,6 +57,19 @@ def move(fromcube, tocube, x, y, z):
         print("Error PC: problem in move")
         quit()
 
+def move_unit(fromcube, pieceindex, x, y, z):
+        move(fromcube, pieces["piece{0}".format(pieceindex)], x, y, z)
+
+def count_units(piece):
+    count = 0
+    for x, X in enumerate(piece):
+        for y, Y in enumerate(X):
+            for z, Z in enumerate(Y):
+                if Z == 1:
+                    count += 1
+    return count
+
+print("Start:", count_units(full))
 
 def make_piece_x(piece):
     # choose a random coordinate on this side
@@ -71,7 +85,6 @@ def make_piece_x(piece):
             elif full[x + other_x + 1][Y][Z] == 1:
                 move(full, piece, x + other_x + 1, Y, Z)
 
-
 def make_piece_y(piece):
     # choose a random coordinate on this side
     X = random.randint(0, size - 1)
@@ -85,7 +98,6 @@ def make_piece_y(piece):
                 return
             elif full[X][y + other_y + 1][Z] == 1:
                 move(full, piece, X, y + other_y + 1, Z)
-
 
 def make_piece_z(piece):
     # choose a random coordinate on this side
@@ -102,23 +114,6 @@ def make_piece_z(piece):
                 move(full, piece, X, Y, z + other_z + 1)
 
 
-# for numpieces
-for i in range(numpieces):
-    currentpiece = "piece{0}".format(i)
-    pieces[currentpiece] = [[[0 for kk in range(size)] for jj in range(size)] for ii in range(size)]
-    ## random x,y or z
-    ## create longest possible piece
-    choice = random.choice(["x", "y", "z"])
-    if choice == "x":
-        while pieces[currentpiece] == empty:
-            make_piece_x(pieces[currentpiece])
-    if choice == "y":
-        while pieces[currentpiece] == empty:
-            make_piece_y(pieces[currentpiece])
-    if choice == "z":
-        while pieces[currentpiece] == empty:
-            make_piece_z(pieces[currentpiece])
-
 def make_3mf(name, compound):
     cobj = doc.addObject("Part::Compound", name)
     cobj.Links = compound
@@ -129,6 +124,7 @@ def make_3mf(name, compound):
 
 def pieces_to_3mf(pieces):
     for piecename, piece in pieces.items():
+        #print("piece:", piecename, "count:", count_units(piece))
         compound_piece = []
         for x, X in enumerate(piece):
             for y, Y in enumerate(X):
@@ -139,70 +135,96 @@ def pieces_to_3mf(pieces):
         make_3mf(piecename, compound_piece)
 
 
-#print_all_pieces()
-pieces_to_3mf(pieces)
-
-
-'''
-def move_row(fromcube, pieceindex, x, y):
-    for z in range(size):
-        move(fromcube, pieces["blk{0}".format(pieceindex)], x, y, z)
-
-def move_unit(fromcube, pieceindex, x, y, z):
-        move(fromcube, pieces["blk{0}".format(pieceindex)], x, y, z)
-
-
-
 def unit_still_in_full(x, y, z):
     if full[x][y][z] == 1:
         return True
     return False
 
+def find_smallest_piece(piecenamelist):
+    leastpieces = 999
+    leastname = ""
+    for piecename, piece in pieces.items():
+        if piecename in piecenamelist:
+            if len(piece) < leastpieces:
+                leastpieces = len(piece)
+                leastname = piecename
+    return leastname
+
 def move_unit_to_adjacent(x, y, z):
     # find current adjacent pieces
     adj = []
     for piecename, piece in pieces.items():
-        if x >= 1:
+        if x >= 1: # X
             tx = x - 1
         else:
             tx = x
         if piece[tx][y][z] == 1:
-            adj.append(piecename)
+            if count_units(piece) <= maxsize:
+                adj.append(piecename)
         if x == size - 1:
             tx = x
         else:
             tx = x + 1
         if piece[tx][y][z] == 1:
-            adj.append(piecename)
-        if y >= 1:
+            if count_units(piece) <= maxsize:
+                adj.append(piecename)
+        if y >= 1: # Y
             ty = y - 1
         else:
             ty = y
         if piece[x][ty][z] == 1:
-            adj.append(piecename)
+            if count_units(piece) <= maxsize:
+                adj.append(piecename)
         if y == size - 1:
             ty = y
         else:
             ty = y + 1
         if piece[x][ty][z] == 1:
-            adj.append(piecename)
-    print('adjacent are ' + str(adj))
+            if count_units(piece) <= maxsize:
+                adj.append(piecename)
+        if z >= 1: # Z
+            tz = z - 1
+        else:
+            tz = z
+        if piece[x][y][tz] == 1:
+            if count_units(piece) <= maxsize:
+                adj.append(piecename)
+        if z == size - 1:
+            tz = z
+        else:
+            tz = z + 1
+        if piece[x][y][tz] == 1:
+            if count_units(piece) <= maxsize:
+                adj.append(piecename)
+    #print('adjacent are ' + str(adj))
     # choose one of the adjacent pieces and attach to it
-    move_unit(full, random.choice(adj)[3:], x, y, z)
+    if adj != []:
+        smallest = find_smallest_piece(adj)
+        #move_unit(full, random.choice(adj)[5:], x, y, z)
+        move_unit(full, smallest[5:], x, y, z)
     return
 
-# creates straight pieces but skips one every time
-skip = True
-i = 0
-for x in range(size):
-    for y in range(size):
-        pieces["blk{0}".format(i)] = [[[0 for k in range(size)] for j in range(size)] for i in range(size)]
-        if skip:
-            move_row(full, i, x, y)
-            skip = False
-        else:
-            skip = True
-        i += 1
+
+for i in range(numpieces):
+    currentpiece = "piece{0}".format(i)
+    pieces[currentpiece] = [[[0 for kk in range(size)] for jj in range(size)] for ii in range(size)]
+    ## random x,y or z
+    ## create longest possible piece
+    choice = random.choice(["x", "y", "z"])
+    if choice == "x":
+        while (count_units(pieces[currentpiece]) < 3):
+            pieces[currentpiece] = [[[0 for kk in range(size)] for jj in range(size)] for ii in range(size)]
+            make_piece_x(pieces[currentpiece])
+    if choice == "y":
+        while (count_units(pieces[currentpiece]) < 3):
+            pieces[currentpiece] = [[[0 for kk in range(size)] for jj in range(size)] for ii in range(size)]
+            make_piece_y(pieces[currentpiece])
+    if choice == "z":
+        while (count_units(pieces[currentpiece]) < 3):
+            pieces[currentpiece] = [[[0 for kk in range(size)] for jj in range(size)] for ii in range(size)]
+            make_piece_z(pieces[currentpiece])
+
+print("Round 1:", count_units(full))
 
 # second round
 for x in range(size):
@@ -211,5 +233,60 @@ for x in range(size):
             if unit_still_in_full(x,y,z):
                 move_unit_to_adjacent(x,y,z)
 
+print("Round 2:", count_units(full))
+
+# third round
+for x in range(size):
+    for y in range(size):
+        for z in range(size):
+            if unit_still_in_full(x,y,z):
+                move_unit_to_adjacent(x,y,z)
+
+print("Round 3:", count_units(full))
+
+
+# third round
+for x in range(size):
+    for y in range(size):
+        for z in range(size):
+            if unit_still_in_full(x,y,z):
+                move_unit_to_adjacent(x,y,z)
+
+print("Round 4:", count_units(full))
+
+
+# third round
+for x in range(size):
+    for y in range(size):
+        for z in range(size):
+            if unit_still_in_full(x,y,z):
+                move_unit_to_adjacent(x,y,z)
+
+print("Round 5:", count_units(full))
+
+
+# third round
+for x in range(size):
+    for y in range(size):
+        for z in range(size):
+            if unit_still_in_full(x,y,z):
+                move_unit_to_adjacent(x,y,z)
+
+print("Round 6:", count_units(full))
+
+
+
+
+
+##### andersom doen
+dus bestaande pieces overlopen en daar telkens stukje aan toevoegen
+
+
+
+
+
+
 #print_all_pieces()
-'''
+pieces_to_3mf(pieces)
+
+
