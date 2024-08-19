@@ -11,10 +11,13 @@ import MeshPart
 # Labels
 DocLabel   = 'Lego_Windows'
 BodyLabel  = DocLabel + '_body'
-HullLabel  = DocLabel + '_hull'
-FrameLabel = DocLabel + '_frame'
-StudsLabel = DocLabel + '_studs'
-StudLabel  = 'stud_template'
+HullLabel  = DocLabel + '_hull'  # hull = outer (wood) edge of window
+FrameLabel = DocLabel + '_frame' # frame = inner (wood) beams in window
+StudsLabel = DocLabel + '_studs' # studs on top
+HolesLabel = DocLabel + '_hole'  # hole = disc + prism
+DiscsLabel = DocLabel + '_disc'
+PrismLabel = DocLabel + '_prism'
+StudLabel  = 'stud_template'    # a single template stud
 
 # The directory to export the .stl files to
 export_directory = "/home/paul/FreeCAD_generated/windows/"
@@ -95,7 +98,7 @@ def make_grandmother_frame(name, width_in_studs, height_in_bricks):
 def add_studs(name, width_in_studs, height_in_bricks):
     studlist = []
     for i in range(int(width_in_studs)):
-        label = StudsLabel + '_' + str(i + 1)
+        label = name + '_' + str(i + 1)
         stud = doc.addObject('Part::Feature',label)
         stud.Shape = doc.stud_template.Shape 
         stud.Label = label
@@ -105,11 +108,44 @@ def add_studs(name, width_in_studs, height_in_bricks):
         stud.Placement = Placement(Vector(x, y, z), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
         studlist.append(stud)
         doc.recompute()
-    obj = doc.addObject("Part::MultiFuse",StudsLabel)
+    obj = doc.addObject("Part::MultiFuse",name)
     obj.Shapes = studlist
-    obj.Label = StudsLabel
+    obj.Label = name
     doc.recompute()
     return obj
+
+def add_holes(name, width_in_studs, height_in_bricks):
+    holelist = []
+    for i in range(int(width_in_studs)):
+        # stud shaped hole
+        label = DiscsLabel + '_' + str(i + 1)
+        disc  = doc.addObject("Part::Cylinder", label)
+        disc.Radius = stud_oradius_mm 
+        disc.Height = side_mm
+        x = ((i+1) * stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
+        y = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
+        z = 0
+        disc.Placement = Placement(Vector(x, y, z), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+        # follow-up straight hole
+        label  = PrismLabel + '_' + str(i + 1)
+        edge   = stud_oradius_mm * 2
+        prism  = make_box(label, edge, edge, side_mm)
+        x = ((i+1) * stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2) - (stud_oradius_mm) 
+        y = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
+        z = 0
+        prism.Placement = Placement(Vector(x, y, z), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+        doc.recompute()
+        label  = HolesLabel + '_' + str(i + 1)
+        hole      = doc.addObject('Part::Fuse', label)
+        hole.Base = disc
+        hole.Tool = prism
+        holelist.append(hole)
+    obj = doc.addObject("Part::MultiFuse",name)
+    obj.Shapes = holelist
+    obj.Label = name
+    doc.recompute()
+    return obj
+
 
 
 # START
@@ -122,78 +158,19 @@ h = 2 # height in bricks
 hull  = make_window_hull(HullLabel, w, h)
 frame = make_grandmother_frame(FrameLabel, w, h)
 studs = add_studs(StudsLabel, w, h)
+holes = add_holes(HolesLabel, w, h)
 
-
-
-
-# add bottom holes
-# each hole is a cylinder at the stud location, followed by y-axis straight hole
-# cylinder holes
-hole1 = doc.addObject("Part::Cylinder", "hole1")
-hole1.Radius = stud_oradius_mm 
-hole1.Height = stud_height_mm
-xpos = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
-ypos = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
-zpos = 0
-hole1.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+obj = doc.addObject("Part::MultiFuse","obj")
+obj.Shapes = [hull, frame, studs]
+obj.Label = "obj"
 doc.recompute()
-
-onehole      = doc.addObject('Part::Cut', "onehole")
-onehole.Base = hull
-onehole.Tool = hole1
-
-hole2 = doc.addObject("Part::Cylinder", "hole2")
-hole2.Radius = stud_oradius_mm 
-hole2.Height = stud_height_mm
-xpos = (2 * stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
-ypos = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
-zpos = 0
-hole2.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+window   = doc.addObject('Part::Cut', "window")
+window.Base = obj
+window.Tool = holes
 doc.recompute()
-
-twohole      = doc.addObject('Part::Cut', "twohole")
-twohole.Base = onehole
-twohole.Tool = hole2
-
-# follow-up straight holes
-h1width  = stud_oradius_mm * 2
-h1depth  = stud_oradius_mm * 2
-h1height = side_mm
-h1       = make_box("h1", h1width, h1depth, h1height)
-xpos = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2) - (stud_oradius_mm) 
-ypos = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
-zpos = 0
-h1.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-doc.recompute()
-
-threehole      = doc.addObject('Part::Cut', "threehole")
-threehole.Base = twohole
-threehole.Tool = h1
-
-h2width  = stud_oradius_mm * 2
-h2depth  = stud_oradius_mm * 2
-h2height = side_mm
-h2       = make_box("h2", h2width, h2depth, h2height)
-xpos = (2 * stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2) - (stud_oradius_mm) 
-ypos = (stud_spacing_mm) - (stud_spacing_mm / 2) - (gap_mm / 2)
-zpos = 0
-h2.Placement = FreeCAD.Placement(Vector(xpos, ypos, zpos), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-doc.recompute()
-
-fourhole      = doc.addObject('Part::Cut', "fourhole")
-fourhole.Base = threehole
-fourhole.Tool = h2
-
-'''
-# fusion the studs
-fuse1 = doc.addObject("Part::Fuse","fuse1")
-fuse1.Base = fourhole
-fuse1.Tool = stud1
-fuse2 = doc.addObject("Part::Fuse","fuse2")
-fuse2.Base = fuse1
-fuse2.Tool = stud2
-'''
 
 doc.removeObject("stud_template")
+doc.removeObject("i_cyl")
+doc.removeObject("o_cyl")
 doc.recompute()
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
