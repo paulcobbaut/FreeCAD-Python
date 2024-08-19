@@ -179,83 +179,33 @@ fourhole      = doc.addObject('Part::Cut', "fourhole")
 fourhole.Base = threehole
 fourhole.Tool = h2
 
+# fusion the studs
+fuse1 = doc.addObject("Part::Fuse","fuse1")
+fuse1.Base = fourhole
+fuse1.Tool = stud1
+fuse2 = doc.addObject("Part::Fuse","fuse2")
+fuse2.Base = fuse1
+fuse2.Tool = stud2
 
+# add window frames similar to the windows of my grandmothers house
+uwidth  = side_mm
+udepth  = side_mm
+uheight = convert_studs_to_mm(2) - (side_mm * 3) 
+upwards  = make_box("upwards", uwidth, udepth, uheight)
+upwards.Placement = FreeCAD.Placement(Vector(brick_width_mm - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
 
+fwidth  = convert_studs_to_mm(2) - (side_mm * 2)
+fdepth  = side_mm
+fheight = side_mm
+flat  = make_box("flat", fwidth, fdepth, fheight)
+flat.Placement = FreeCAD.Placement(Vector(side_mm, 0, uheight + side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
 
-def add_pocket_top_studs(pocket_tuple):
-    # Add the studs on top
-    # create the studs and append each one to a compound_list
-    compound_list=[]
-    pocket_name = pocket_tuple[0]
-    studs_x = pocket_tuple[1]
-    studs_y = pocket_tuple[2]
-    hole_x = studs_x - 2       # pocket wall is one stud
-    hole_y = studs_y - 2
-    z = pocket_tuple[3] + pocket_tuple[4]
-    height = z * plate_height_mm
-    for i in range(int(studs_x)):
-        for j in range(int(studs_y)):
-            if ( (i < 1) or (i > hole_x) ) or ( (j < 1) or (j > hole_y) ):
-                stud = doc.addObject('Part::Feature','stud_template')
-                stud.Shape = doc.stud_template.Shape
-                stud.Label = "stud_" + pocket_name + '_' + str(i) + '_' + str(j)
-                xpos = ((i+1) * stud_center_spacing_mm) - (stud_center_spacing_mm / 2) - (gap_mm / 2)
-                ypos = ((j+1) * stud_center_spacing_mm) - (stud_center_spacing_mm / 2) - (gap_mm / 2)
-                stud.Placement = FreeCAD.Placement(Vector(xpos, ypos, height), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-                compound_list.append(stud)
-    return compound_list
-
-def add_pocket_floor_studs(pocket_tuple):
-    # Add the studs on the inside floor of the pocket
-    # create the studs and append each one to a compound_list
-    compound_list=[]
-    pocket_name = pocket_tuple[0]
-    x = pocket_tuple[1] - 2
-    y = pocket_tuple[2] - 2
-    z = pocket_tuple[4]
-    height = z * plate_height_mm
-    for i in range(int(x)):
-        for j in range(int(y)):
-            stud = doc.addObject('Part::Feature','stud_template')
-            stud.Shape = doc.stud_template.Shape
-            stud.Label = "stud_" + pocket_name + '_' + str(i) + '_' + str(j)
-            xpos = ((i+2) * stud_center_spacing_mm) - (stud_center_spacing_mm / 2) - (gap_mm / 2)
-            ypos = ((j+2) * stud_center_spacing_mm) - (stud_center_spacing_mm / 2) - (gap_mm / 2)
-            stud.Placement = FreeCAD.Placement(Vector(xpos, ypos, height), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
-            compound_list.append(stud)
-    return compound_list
-
-
-def create_pocket(studs_x, studs_y, inner_height, floor_height, inner_studs):
-    # name the brick
-    pocket_name = name_a_pocket(studs_x, studs_y, inner_height, floor_height, inner_studs)
-    pocket_tuple = ( pocket_name, studs_x, studs_y, inner_height, floor_height )
-    # compound list will contain: the hull, the studs
-    compound_list = []
-    compound_list.append(create_pocket_hull(pocket_tuple))
-    compound_list += add_pocket_top_studs(pocket_tuple)
-    if inner_studs:
-        compound_list += add_pocket_floor_studs(pocket_tuple)
-    # brick is finished, so create a compound object with the name of the brick
-    obj = doc.addObject("Part::Compound", pocket_name)
-    obj.Links = compound_list
-    # create mesh from shape (compound)
-    doc.recompute()
-    mesh = doc.addObject("Mesh::Feature","Mesh")
-    part = doc.getObject(pocket_name)
-    shape = Part.getShape(part,"")
-    mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=0.1, AngularDeflection=0.0174533, Relative=False)
-    mesh.Label = 'Mesh_' + pocket_name
-    # upload .stl file
-    export = []
-    export.append(mesh)
-    Mesh.export(export, export_directory + pocket_name + ".stl")
-    obj.ViewObject.hide()
-    #return obj
-    
 
 
 doc.removeObject("stud_template")
+doc.removeObject("o_cyl")
+doc.removeObject("i_cyl")
+
 doc.recompute()
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
 
