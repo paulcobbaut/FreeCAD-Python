@@ -17,7 +17,7 @@ StudsLabel = DocLabel + '_studs' # studs on top
 HolesLabel = DocLabel + '_hole'  # hole = disc + prism
 DiscsLabel = DocLabel + '_disc'
 PrismLabel = DocLabel + '_prism'
-StudLabel  = 'stud_template'    # a single template stud
+StudLabel  = 'stud_template'     # a single template stud
 
 # The directory to export the .stl files to
 export_directory = "/home/paul/FreeCAD_generated/windows/"
@@ -146,31 +146,34 @@ def add_holes(name, width_in_studs, height_in_bricks):
     doc.recompute()
     return obj
 
-
+def create_windows(max_width, max_height):
+    offsetx = 0
+    for w in range(2, max_width + 1):
+        offsetz = 0
+        for h in range(2, max_height + 1):
+            hull  = make_window_hull(HullLabel, w, h)
+            frame = make_grandmother_frame(FrameLabel, w, h)
+            studs = add_studs(StudsLabel, w, h)
+            holes = add_holes(HolesLabel, w, h)
+            obj = doc.addObject("Part::MultiFuse","obj")
+            obj.Shapes = [hull, frame, studs]
+            obj.Label = "obj"
+            doc.recompute()
+            window   = doc.addObject('Part::Cut', "window")
+            window.Base = obj
+            window.Tool = holes
+            window.Placement = Placement(Vector((brick_width_mm * offsetx), 0, (brick_width_mm * offsetz)), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+            doc.recompute()
+            Mesh.export([window], export_directory + ' ' + str(w) + 'x' + str(h) + ".stl")
+            offsetz = offsetz + h + 2
+        offsetx = offsetx + w + 1
 
 # START
-doc = FreeCAD.newDocument(DocLabel)       # create document
-stud_template = make_stud(StudLabel)      # create stud template
-
-w = 5 # width in studs of the window
-h = 2 # height in bricks 
-
-hull  = make_window_hull(HullLabel, w, h)
-frame = make_grandmother_frame(FrameLabel, w, h)
-studs = add_studs(StudsLabel, w, h)
-holes = add_holes(HolesLabel, w, h)
-
-obj = doc.addObject("Part::MultiFuse","obj")
-obj.Shapes = [hull, frame, studs]
-obj.Label = "obj"
-doc.recompute()
-window   = doc.addObject('Part::Cut', "window")
-window.Base = obj
-window.Tool = holes
-doc.recompute()
+doc = FreeCAD.newDocument(DocLabel)
+stud_template = make_stud(StudLabel)
+create_windows(5,3)         # max width in studs, max height in bricks
 
 doc.removeObject("stud_template")
 doc.removeObject("i_cyl")
 doc.removeObject("o_cyl")
-doc.recompute()
 FreeCADGui.ActiveDocument.ActiveView.fitAll()
