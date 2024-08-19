@@ -79,9 +79,9 @@ def make_window_hull(name, width_in_studs, height_in_bricks):
 def make_grandmother_frame(name, width_in_studs, height_in_bricks):
     uwidth  = side_mm
     udepth  = side_mm
-    uheight = convert_studs_to_mm(width_in_studs) - (side_mm * 3) 
+    uheight = convert_studs_to_mm(height_in_bricks) - (side_mm * 3) 
     upwards = make_box("upwards", uwidth, udepth, uheight)
-    upwards.Placement = Placement(Vector(brick_width_mm - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    upwards.Placement = Placement(Vector( ((width_in_studs * brick_width_mm)/2) - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     fwidth  = convert_studs_to_mm(width_in_studs) - (side_mm * 2)
     fdepth  = side_mm
     fheight = side_mm
@@ -116,9 +116,15 @@ def add_studs(name, width_in_studs, height_in_bricks):
 doc = FreeCAD.newDocument(DocLabel)       # create document
 stud_template = make_stud(StudLabel)      # create stud template
 
-hull  = make_window_hull(HullLabel, 2, 2)
-frame = make_grandmother_frame(FrameLabel, 2, 2)
-studs = add_studs(StudsLabel, 2, 2)
+w = 5 # width in studs of the window
+h = 2 # height in bricks 
+
+hull  = make_window_hull(HullLabel, w, h)
+frame = make_grandmother_frame(FrameLabel, w, h)
+studs = add_studs(StudsLabel, w, h)
+
+
+
 
 # add bottom holes
 # each hole is a cylinder at the stud location, followed by y-axis straight hole
