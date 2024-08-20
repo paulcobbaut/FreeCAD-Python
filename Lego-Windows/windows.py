@@ -95,9 +95,38 @@ def make_grandmother_frame(name, width_in_studs, height_in_bricks):
     obj.Tool = flat
     return obj 
 
+# add one straight beam to window frame
+def add_one_beam(name, width_in_studs, height_in_bricks):
+    uwidth  = side_mm
+    udepth  = side_mm
+    uheight = (height_in_bricks * brick_height_mm) - (side_mm * 2) 
+    upwards = make_box("upwards", uwidth, udepth, uheight)
+    upwards.Placement = Placement(Vector( ((width_in_studs * brick_width_mm)/2) - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+    return upwards
+
+# add straight beams per stud to window frame
+def add_beams(name, width_in_studs, height_in_bricks):
+    bwidth  = side_mm
+    bdepth  = side_mm
+    bheight = (height_in_bricks * brick_height_mm) - (side_mm * 2) 
+    beamlist = []
+    for i in range(1, width_in_studs):
+        print(name, width_in_studs, i)
+        beam = make_box("beam", bwidth, bdepth, bheight)
+        beam.Placement = Placement(Vector( (i * stud_spacing_mm) - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+        beamlist.append(beam)
+    if width_in_studs == 2: # only one beam, so no Fuse needed
+        return beam
+    else:
+        obj = doc.addObject("Part::MultiFuse",name)
+        obj.Shapes = beamlist
+        obj.Label = name
+    doc.recompute()
+    return obj
+
 def add_studs(name, width_in_studs, height_in_bricks):
     studlist = []
-    for i in range(int(width_in_studs)):
+    for i in range(width_in_studs):
         label = name + '_' + str(i + 1)
         stud = doc.addObject('Part::Feature',label)
         stud.Shape = doc.stud_template.Shape 
@@ -152,7 +181,9 @@ def create_windows(max_width, max_height):
         offsetz = 0
         for h in range(2, max_height + 1):
             hull  = make_window_hull(HullLabel, w, h)
-            frame = make_grandmother_frame(FrameLabel, w, h)
+            #frame = make_grandmother_frame(FrameLabel, w, h)
+            #frame = add_one_beam(FrameLabel, w, h)
+            frame = add_beams(FrameLabel, w, h)
             studs = add_studs(StudsLabel, w, h)
             holes = add_holes(HolesLabel, w, h)
             obj = doc.addObject("Part::MultiFuse","obj")
