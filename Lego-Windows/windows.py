@@ -13,6 +13,8 @@ DocLabel   = 'Lego_Windows'
 BodyLabel  = DocLabel + '_body'
 HullLabel  = DocLabel + '_hull'  # hull = outer (wood) edge of window
 FrameLabel = DocLabel + '_frame' # frame = inner (wood) beams in window
+BeamLabel  = DocLabel + '_beam'  # beam = one inner (wood) beam in window
+BeamsLabel = DocLabel + '_beams' # beams = one inner (wood) beam per stud in window
 StudsLabel = DocLabel + '_studs' # studs on top
 HolesLabel = DocLabel + '_hole'  # hole = disc + prism
 DiscsLabel = DocLabel + '_disc'
@@ -100,7 +102,7 @@ def add_one_beam(name, width_in_studs, height_in_bricks):
     uwidth  = side_mm
     udepth  = side_mm
     uheight = (height_in_bricks * brick_height_mm) - (side_mm * 2) 
-    upwards = make_box("upwards", uwidth, udepth, uheight)
+    upwards = make_box(name, uwidth, udepth, uheight)
     upwards.Placement = Placement(Vector( ((width_in_studs * brick_width_mm)/2) - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
     return upwards
 
@@ -111,7 +113,6 @@ def add_beams(name, width_in_studs, height_in_bricks):
     bheight = (height_in_bricks * brick_height_mm) - (side_mm * 2) 
     beamlist = []
     for i in range(1, width_in_studs):
-        print(name, width_in_studs, i)
         beam = make_box("beam", bwidth, bdepth, bheight)
         beam.Placement = Placement(Vector( (i * stud_spacing_mm) - (side_mm / 2), 0, side_mm), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
         beamlist.append(beam)
@@ -181,28 +182,88 @@ def create_windows(max_width, max_height):
         offsetz = 0
         for h in range(2, max_height + 1):
             hull  = make_window_hull(HullLabel, w, h)
-            #frame = make_grandmother_frame(FrameLabel, w, h)
-            #frame = add_one_beam(FrameLabel, w, h)
-            frame = add_beams(FrameLabel, w, h)
             studs = add_studs(StudsLabel, w, h)
             holes = add_holes(HolesLabel, w, h)
             obj = doc.addObject("Part::MultiFuse","obj")
-            obj.Shapes = [hull, frame, studs]
+            obj.Shapes = [hull, studs]
             obj.Label = "obj"
             doc.recompute()
             window   = doc.addObject('Part::Cut', "window")
             window.Base = obj
             window.Tool = holes
-            window.Placement = Placement(Vector((brick_width_mm * offsetx), 0, (brick_width_mm * offsetz)), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
             doc.recompute()
-            Mesh.export([window], export_directory + ' ' + str(w) + 'x' + str(h) + ".stl")
+            # with one beam
+            beam                       = add_one_beam(BeamLabel, w, h)
+            window_for_beam            = doc.addObject('Part::Feature','window_for_beam')
+            window_for_beam.Shape      = window.Shape
+            window_for_beam.Label      = 'window_for_beam'
+            window_with_beam           = doc.addObject("Part::MultiFuse",'window_with_beam')
+            window_with_beam.Shapes    = [window_for_beam, beam]
+            window_with_beam.Label     = "window_with_beam"
+            window_with_beam.Placement = Placement(Vector((brick_width_mm * offsetx), 0, (brick_width_mm * offsetz)), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
             offsetz = offsetz + h + 2
+            doc.recompute()
+            refobj = doc.addObject('Part::Refine','refined_window_with_beam')
+            refobj.Source = window_with_beam
+            refobj.Label = 'refined_window_with_beam'
+            doc.recompute()
+            # create mesh from compound
+            mesh = doc.addObject("Mesh::Feature","Mesh")
+            shape = Part.getShape(refobj,"")
+            mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
+            mesh.Label = "mesh_window_with_beam"
+            doc.recompute()
+            # upload .stl file
+            Mesh.export([mesh], export_directory + 'window_with_one_beam_' + str(w) + 'x' + str(h) + ".stl")
+            # with one beam per stud
+            beams                       = add_beams(BeamsLabel, w, h)
+            window_for_beams            = doc.addObject('Part::Feature','window_for_beams')
+            window_for_beams.Shape      = window.Shape
+            window_for_beams.Label      = 'window_for_beams'
+            window_with_beams           = doc.addObject("Part::MultiFuse",'window_with_beams')
+            window_with_beams.Shapes    = [window_for_beams, beams]
+            window_with_beams.Label     = "window_with_beams"
+            window_with_beams.Placement = Placement(Vector((brick_width_mm * offsetx), 0, (brick_width_mm * offsetz)), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+            offsetz = offsetz + h + 2
+            doc.recompute()
+            refobj = doc.addObject('Part::Refine','refined_window_with_beams')
+            refobj.Source = window_with_beams
+            refobj.Label = 'refined_window_with_beams'
+            doc.recompute()
+            # create mesh from compound
+            mesh = doc.addObject("Mesh::Feature","Mesh")
+            shape = Part.getShape(refobj,"")
+            mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
+            mesh.Label = "mesh_window_with_beams"
+            doc.recompute()
+            # upload .stl file
+            Mesh.export([window_with_beams], export_directory + 'window_with_beams_' + str(w) + 'x' + str(h) + ".stl")
+            # with grandmother frame
+            moemoe = make_grandmother_frame(FrameLabel, w, h)
+            window_with_frame           = doc.addObject("Part::MultiFuse",'window_with_frame')
+            window_with_frame.Shapes    = [window, moemoe]
+            window_with_frame.Label     = "window_with_frame"
+            window_with_frame.Placement = Placement(Vector((brick_width_mm * offsetx), 0, (brick_width_mm * offsetz)), FreeCAD.Rotation(0,0,0), Vector(0,0,0))
+            offsetz = offsetz + h + 2
+            doc.recompute()
+            refobj = doc.addObject('Part::Refine','refined_window_with_frame')
+            refobj.Source = window_with_frame
+            refobj.Label = 'refined_window_with_frame'
+            doc.recompute()
+            # create mesh from compound
+            mesh = doc.addObject("Mesh::Feature","Mesh")
+            shape = Part.getShape(refobj,"")
+            mesh.Mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=1, AngularDeflection=0.1, Relative=False)
+            mesh.Label = "mesh_window_with_frame"
+            doc.recompute()
+            # upload .stl file
+            Mesh.export([window_with_frame], export_directory + 'window_with_frame_' + str(w) + 'x' + str(h) + ".stl")
         offsetx = offsetx + w + 1
 
 # START
 doc = FreeCAD.newDocument(DocLabel)
 stud_template = make_stud(StudLabel)
-create_windows(5,3)         # max width in studs, max height in bricks
+create_windows(6,3)         # max width in studs, max height in bricks
 
 doc.removeObject("stud_template")
 doc.removeObject("i_cyl")
