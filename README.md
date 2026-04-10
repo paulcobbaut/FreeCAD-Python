@@ -1,3 +1,5 @@
+# Everything migrated to https://codeberg.org/paulcobbaut
+
 # FreeCAD-Python
 Python scripts to automate creating objects in FreeCAD
 
